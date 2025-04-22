@@ -13,7 +13,7 @@ class AuthController extends Controller
     public function home()
     {
         switch (session('jabatan')) {
-            case 'adminSM':
+            case 'admin':
                 return redirect('/admin');
             case 'ks':
                 return redirect('/kepala');
@@ -36,7 +36,7 @@ class AuthController extends Controller
             Session(['jabatan' => Auth::user()->jabatan]);
 
             switch (session('jabatan')) {
-                case 'adminSM':
+                case 'admin':
                     return redirect('/admin');
                 case 'ks':
                     return redirect('/kepala');
@@ -71,7 +71,7 @@ class AuthController extends Controller
         // Simpan di session saat login
         session(['jabatan' => Auth::user()->jabatan]);
 
-        if ($user->jabatan == "adminSM") {
+        if ($user->jabatan == "admin") {
             return redirect('/admin');
         } else if ($user->jabatan == "ks") {
             return redirect('/kepala');
