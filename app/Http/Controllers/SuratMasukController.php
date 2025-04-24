@@ -26,7 +26,12 @@ class SuratMasukController extends Controller
     {
         $listInstansi = Instansi::all();
         $agenda = Agenda::all();
-        return view('surat-masuk.create', compact('listInstansi', 'agenda'));
+        return view('surat-masuk.create', [
+    'data' => null,
+    'listInstansi' => $listInstansi,
+    'agenda' => $agenda,
+]);
+       // return view('surat-masuk.create', compact('listInstansi', 'agenda'));
     }
 
     public function store(Request $request)
@@ -99,9 +104,19 @@ class SuratMasukController extends Controller
         return view('surat-masuk.show', compact('suratMasuk'));
     }
 
-    public function edit(SuratMasuk $suratMasuk)
+    public function edit(SuratMasuk $id)
     {
-        return view('surat-masuk.edit', compact('suratMasuk'));
+        $data = SuratMasuk::findOrFail($id);
+$listInstansi = Instansi::all();
+$agenda = Agenda::all();
+
+return view('surat-masuk.create', [
+    'data' => $data,
+    'listInstansi' => $listInstansi,
+    'agenda' => $agenda,
+]);
+        
+        //return view('surat-masuk.edit', compact('suratMasuk'));
     }
 
     public function update(Request $request, SuratMasuk $suratMasuk)
