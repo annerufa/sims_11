@@ -50,7 +50,8 @@ class SuratMasuk extends Model
         'nomor_srt',
         'tanggal_srt',
         'tanggal_terima',
-        'agenda',
+        'agenda_id',
+        'nomor_urut',
         'perihal',
         'keterangan',
         'file',
@@ -86,6 +87,10 @@ class SuratMasuk extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+    public function disposisi()
+    {
+        return $this->hasMany(Disposisi::class);
+    }
 
     /**
      * Relasi dengan model Instansi.
@@ -99,7 +104,7 @@ class SuratMasuk extends Model
      */
     public function agenda(): BelongsTo
     {
-        return $this->belongsTo(Agenda::class, 'agenda', 'id_agenda');
+        return $this->belongsTo(Agenda::class, 'agenda_id', 'id_agenda');
     }
 
     /**

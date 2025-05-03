@@ -47,4 +47,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function disposisiDiterima()
+    {
+        return $this->belongsToMany(Disposisi::class, 'disposisi_penerima')
+            ->withPivot('status_baca', 'catatan_balasan')
+            ->withTimestamps();
+    }
 }

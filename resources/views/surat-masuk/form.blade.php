@@ -1,16 +1,5 @@
 @extends('layout.app')
-@push('style')
-    <style>
-        .hilang {
-            display: none;
-        }
 
-        .cc {
-            row-gap: 10px;
-            margin-top: 10px;
-        }
-    </style>
-@endpush
 @section('content')
     <div class="card">
         <h5 class="card-header">Form Surat Masuk</h5>
@@ -35,46 +24,65 @@
                     <h6>1. Data Pengirim</h6>
                     <hr class="mt-0">
                 </div>
+                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="nama_instansi">Pilih atau ketik nama Instansi:</label>
+                    <input class="form-control" placeholder="Pilih atau ketik nama instansi" list="instansiList"
+                        id="nama_instansi" name="nama_instansi" autocomplete="off"
+                        value="{{ old('nama_instansi', $data->instansi->nama_instansi ?? '') }}">
 
-                <div class="col-md-12 form-control-validation fv-plugins-icon-container">
-                    <label class="form-label" for="tujuan">Pilih Pengirim Surat:</label>
-                    <select id="tujuan" name="tujuan" class="form-select">
-                        <option disabled selected value="">Pilih Salah Satu</option>
-                        <option value="new">+ Tambah Data Pengirim Baru</option>
+                    <input type="hidden" name="id_pengirim" id="id_pengirim"
+                        value="{{ old('id_pengirim', $data->id_pengirim ?? '') }}">
+
+                    <datalist id="instansiList">
                         @foreach ($listInstansi as $instansi)
-                            <option value="{{ $instansi->id_instansi }}"
-                                {{ old('tujuan', $data->tujuan ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
-                                ({{ $instansi->nama_pengirim }})
-                                <br>{{ $instansi->jabatan_pengirim }} -
-                                {{ $instansi->nama_instansi }}
+                            <option value="{{ $instansi->nama_instansi }}" data-id="{{ $instansi->id_instansi }}"
+                                data-alamat="{{ $instansi->alamat }}" data-nama="{{ $instansi->nama_pengirim }}"
+                                data-jabatan="{{ $instansi->jabatan_pengirim }}">
                             </option>
                         @endforeach
-                    </select>
+                    </datalist>
                 </div>
-                <div id="form-tujuan-baru" class="hilang cc">
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="nama_instansi">Nama Instansi</label>
-                        <input type="text" id="nama_instansi" class="form-control" placeholder="Nama Instansi"
-                            name="nama_instansi" value="{{ old('nama_instansi', $data->instansi->nama_instansi ?? '') }}">
-                    </div>
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="nama_pengirim">Nama Tujuan</label>
-                        <input type="text" id="nama_pengirim" class="form-control" placeholder="Nama Tujuan"
-                            name="nama_pengirim" value="{{ old('nama_pengirim', $data->instansi->nama_pengirim ?? '') }}">
-                    </div>
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="jabatan_pengirim">Jabatan Tujuan</label>
-                        <input class="form-control" type="text" id="jabatan_pengirim" name="jabatan_pengirim"
-                            placeholder="Jabatan Tujuan"
-                            value="{{ old('jabatan_pengirim', $data->instansi->jabatan_pengirim ?? '') }}">
-                    </div>
 
-                    <div class="col-md-12 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="alamat">Alamat Tujuan</label>
-                        <textarea class="form-control" name="alamat" id="alamat" cols="30" rows="2"
-                            placeholder="Masukkan alamat di sini ....">{{ old('alamat', $data->instansi->alamat ?? '') }}</textarea>
-                    </div>
+                <!-- Tambahkan alamat juga kalau mau otomatis -->
+                {{-- <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="alamat_instansi">Alamat Instansi:</label>
+                    <input class="form-control" id="alamat_instansi" name="alamat_instansi" readonly
+                        value="{{ old('alamat_instansi', $data->instansi->alamat_instansi ?? '') }}">
+                </div> --}}
+
+                {{-- <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="kota">Pilih atau ketik nama Instansi:</label>
+                    <input class="form-control" placeholder="Pilih atau ketik nama instansi" list="instansiList"
+                        id="nama_instansi" name="id_pengirim" autocomplete="off"
+                        value="{{ old('nama_instansi', $data->instansi->nama_instansi ?? '') }}">
+                    <datalist id="instansiList"> --}}
+                {{-- @dd($listInstansi) --}}
+                {{-- @foreach ($listInstansi as $instansi)
+                            <option value="{{ $instansi->id_instansi }}"
+                                {{ old('id_pengirim', $data->id_pengirim ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
+                                {{ $instansi->nama_instansi }}
+                            </option>
+                        @endforeach --}}
+                {{-- </datalist>
+                </div> --}}
+                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="nama_pengirim">Nama Pengirim</label>
+                    <input type="text" id="nama_pengirim" class="form-control" placeholder="John Doe"
+                        name="nama_pengirim" value="{{ old('nama_pengirim', $data->instansi->nama_pengirim ?? '') }}">
                 </div>
+                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="jabatan_pengirim">Jabatan Pengirim</label>
+                    <input class="form-control" type="text" id="jabatan_pengirim" name="jabatan_pengirim"
+                        placeholder="Jabatan (periode)"
+                        value="{{ old('jabatan_pengirim', $data->instansi->jabatan_pengirim ?? '') }}">
+                </div>
+
+                <div class="col-md-12 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="formValidationPass">Alamat Pengirim</label>
+                    <textarea class="form-control" name="alamat_pengirim" id="alamat_pengirim" cols="30" rows="2"
+                        placeholder="Masukkan alamat di sini ....">{{ old('alamat_pengirim', $data->instansi->alamat ?? '') }}</textarea>
+                </div>
+
                 <!-- Personal Info -->
 
                 <div class="col-12">
@@ -106,7 +114,8 @@
                         <option disabled {{ old('sifat_srt', $data->sifat_srt ?? '') == '' ? 'selected' : '' }}>
                             Pilih Salah Satu
                         </option>
-                        <option value="Biasa" {{ old('sifat_srt', $data->sifat_srt ?? '') == 'Biasa' ? 'selected' : '' }}>
+                        <option value="Rahasia"
+                            {{ old('sifat_srt', $data->sifat_srt ?? '') == 'Biasa' ? 'selected' : '' }}>
                             Biasa
                         </option>
                         <option value="Segera"
@@ -137,7 +146,7 @@
                 </div>
                 <div class="col-md-4">
                     <label for="agenda" class="form-label">Jenis Agenda</label>
-                    <select id="defaultSelect" name="agenda_id" class="form-select">
+                    <select id="defaultSelect" name="agenda" class="form-select">
                         <option>Pilih Salah Satu</option>
                         @foreach ($agenda as $agenda)
                             <option value="{{ $agenda->id_agenda }}"
@@ -157,7 +166,7 @@
                 <div class="col-md-12">
                     <label class="form-label" for="file">File Scan Surat Masuk</label>
                     <input class="form-control" type="file" name="file" id="file"
-                        value="{{ old('file', $data->file ?? '') }}">
+                        value="{{ $data->file }}">
                 </div>
 
                 @if (isset($data) && $data->file)
@@ -192,37 +201,38 @@
     <script>
         flatpickr("#tanggalSuratInput", {
             dateFormat: "d-m-Y",
-            defaultDate: @json(old(
-                    'tanggal_terima',
-                    isset($data) ? \Carbon\Carbon::parse($data->tanggal_terima)->format('d-m-Y') : now()->format('d-m-Y')))
+            defaultDate: @json(old('tanggal_terima', $data->tanggal_terima))
         });
         flatpickr("#tanggal_srt", {
             dateFormat: "d-m-Y",
-            defaultDate: @json(old(
-                    'tanggal_srt',
-                    isset($data) ? \Carbon\Carbon::parse($data->tanggal_srt)->format('d-m-Y') : now()->format('d-m-Y')))
+            defaultDate: @json(old('tanggal_srt', $data->tanggal_srt))
         });
     </script>
+
+
     <script>
-        $('#tujuan').on('change', function() {
+        document.getElementById('nama_instansi').addEventListener('input', function() {
+            let input = this.value;
+            let options = document.querySelectorAll('#instansiList option');
+            let idField = document.getElementById('id_pengirim');
+            let nameField = document.getElementById('nama_pengirim');
+            let jabField = document.getElementById('jabatan_pengirim');
+            let alamatField = document.getElementById('alamat_pengirim');
+            let found = false;
 
-            const select = document.getElementById('tujuan');
-            const formBaru = document.getElementById('form-tujuan-baru');
-            if (select.value === 'new') {
-                // Tampilkan form baru
+            options.forEach(function(option) {
+                if (option.value === input) {
+                    idField.value = option.getAttribute('data-id');
+                    nameField.value = option.getAttribute('data-nama');
+                    jabField.value = option.getAttribute('data-jabatan');
+                    alamatField.value = option.getAttribute('data-alamat');
+                    found = true;
+                }
+            });
 
-                formBaru.classList.remove('hilang');
-                formBaru.classList.add('row');
-
-                // Kosongkan input tersembunyi
-                document.getElementById('nama_instansi').value = '';
-                document.getElementById('nama_pengirim').value = '';
-                document.getElementById('jabatan_pengirim').value = '';
-                document.getElementById('alamat').value = '';
-            } else {
-                // Sembunyikan form baru
-                formBaru.classList.add('hilang');
-                formBaru.classList.remove('row');
+            if (!found) {
+                idField.value = '';
+                alamatField.value = '';
             }
         });
     </script>

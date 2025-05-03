@@ -73,8 +73,22 @@ class InstansiController extends Controller
 
     public function getInstansi(Request $request)
     {
-        $instansi = Instansi::where('nama_instansi', $request->nama_instansi)->first();
+        if ($request->has('id_instansi')) {
+            $instansi = Instansi::find($request->id_instansi);
+        } else if ($request->has('nama_instansi')) {
+            $instansi = Instansi::where('nama_instansi', $request->nama_instansi)->first();
+        } else {
+            return response()->json(null);
+        }
 
         return response()->json($instansi);
+        // $instansi = Instansi::where('nama_instansi', $request->nama_instansi)->first();
+
+        // return response()->json($instansi);
+    }
+    public function testujuan()
+    {
+        $listInstansi = Instansi::latest()->paginate(10);
+        return view('surat-keluar.tes', compact('listInstansi'));
     }
 }

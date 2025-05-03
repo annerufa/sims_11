@@ -21,18 +21,18 @@
     <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}" />
 
     <!-- Vendors CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
+    {{-- <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" /> --}}
 
     <!-- endbuild -->
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}" />
-    <link rel="stylesheet"
+    {{-- <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datsatables-bs5/datatables.bootstrap5.css') }}" /> --}}
+    {{-- <link rel="stylesheet"
         href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') }}" /> --}}
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/flatpickr/flatpickr.css') }}" />
 
 
     <!-- Row Group CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css') }}" />
+    {{-- <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css') }}" /> --}}
     <!-- Form Validation -->
     <link rel="stylesheet" href="{{ asset('assets/vendor/libs/@form-validation/form-validation.css') }}" />
 
@@ -48,6 +48,8 @@
     {{-- <style>
         .active { background-color: #007bff; color: white; }
     </style> --}}
+    <!-- Tambahkan ini di <head> halaman -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
     @stack('style')
@@ -93,7 +95,7 @@
 
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
 
-    <script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
+    {{-- <script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script> --}}
     <script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/@algolia/autocomplete-js.js') }}"></script>
 
@@ -103,7 +105,7 @@
 
 
 
-    <script src="{{ asset('assets/vendor/libs/hammer/hammer.js') }}"></script>
+    {{-- <script src="{{ asset('assets/vendor/libs/hammer/hammer.js') }}"></script> --}}
 
 
     <script src="{{ asset('assets/vendor/js/menu.js') }}"></script>
@@ -111,15 +113,15 @@
     <!-- endbuild -->
 
     <!-- Vendors JS -->
-    <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
+    {{-- <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script> --}}
     <!-- Flat Picker -->
     <script src="{{ asset('assets/vendor/libs/moment/moment.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/flatpickr/flatpickr.js') }}"></script>
 
     <!-- Form Validation -->
-    <script src="{{ asset('assets/vendor/libs/@form-validation/popular.js') }}"></script>
+    {{-- <script src="{{ asset('assets/vendor/libs/@form-validation/popular.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/@form-validation/bootstrap5.js') }}"></script>
-    <script src="{{ asset('assets/vendor/libs/@form-validation/auto-focus.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/@form-validation/auto-focus.js') }}"></script> --}}
     <!-- Main JS -->
 
 

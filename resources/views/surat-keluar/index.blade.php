@@ -1,22 +1,29 @@
 @extends('layout.app')
-
+@push('style')
+    <style>
+        .wrap-text {
+            white-space: normal;
+            word-wrap: break-word;
+            max-width: 300px;
+        }
+    </style>
+@endpush
 @section('content')
     <div class="card">
-        {{-- <h5 class="card-header">Daftar Surat Masuk</h5>
-        <button class="btn btn-primary mb-3 " data-bs-toggle="modal" data-bs-target="#addAgendaModal">Tambah Surat
-            Masuk</button> --}}
         <div class="row card-header flex-column flex-md-row pb-0 mb-5">
             <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
-                <h5 class="card-title mb-0 text-md-start text-center">Daftar Kode Agenda</h5>
+                <h5 class="card-title mb-0 text-md-start text-center">Daftar Surat Keluar</h5>
             </div>
-            <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
-                <button class="btn btn-primary mb-3 " data-bs-toggle="modal" data-bs-target="#addAgendaModal">Tambah Data
-                    Agenda</button>
-            </div>
+            @if (auth()->user()->jabatan === 'admin')
+                <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
+                    <a href="{{ route('surat-keluar.create') }}">
+                        <button class="btn btn-primary mb-3 ">Tambah Surat Keluar</button>
+                    </a>
+                    {{-- <button class="btn btn-primary mb-3 " data-bs-toggle="modal" data-bs-target="#addAgendaModal">Tambah Surat Masuk</button> --}}
+                </div>
+            @endif
         </div>
         <div class="table-responsive text-nowrap">
-            {{-- <table class="table"> --}}
-
 
             @if (session('success'))
                 <div class="alert alert-success" id="auto-dismiss-alert" style="position: fixed;z-index: 9999;width:1057px;">
@@ -31,22 +38,36 @@
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Kode Agenda</th>
-                        <th>Nama Bagian</th>
+                        <th>Tanggal Surat</th>
+                        <th>Jenis Surat</th>
+                        <th>Tujuan</th>
+                        {{-- <th>Nomor Surat</th> --}}
                         <th>Aksi</th>
                     </tr>
                 </thead>
+
                 <tbody id="tabel-agenda">
-                    @foreach ($agenda as $item)
+                    @foreach ($suratKeluars as $item)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ $item->kode_bagian }}</td>
-                            <td>{{ $item->nama_bagian }}</td>
+                            <td>{{ \Carbon\Carbon::parse($item->tanggal_srt)->format('d/m/Y') }}
+                                @if (!$item->is_read)
+                                    <span class="badge bg-label-danger">Baru</span>
+                                    {{-- <span class="badge bg-danger">Baru</span> --}}
+                                @endif
+                            </td>
+                            {{-- <td class="wrap-text">{{ $item->perihal }}</td> --}}
+                            <td>{{ $item->jenis_srt }}</td>
+                            <td>{{ $item->instansi->nama_instansi }}</td>
                             <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#editAgendaModal" data-id="{{ $item->id_agenda }}">Ubah</button>
+                                <a href="{{ route('surat-keluar.show', $item->id_sk) }}" class="btn btn-info btn-sm">
+                                    Detail
+                                </a>
+                                <a href="{{ route('surat-keluar.edit', $item->id_sk) }}" class="btn btn-warning btn-sm">
+                                    Ubah
+                                </a>
 
-                                <form action="{{ route('agenda.destroy', $item->id_agenda) }}" method="POST"
+                                <form action="{{ route('surat-keluar.destroy', $item->id_sk) }}" method="POST"
                                     class="d-inline">
                                     @csrf
                                     @method('DELETE')
@@ -62,29 +83,40 @@
 
         <!-- Modal tambah -->
         <div class="modal fade" id="addAgendaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
-                    <form id="formAddSuratMasuk" action="{{ route('agenda.store') }}" method="POST"
+                    <form id="formAddSuratMasuk" action="{{ route('surat-keluar.store') }}" method="POST"
                         enctype="multipart/form-data">
                         @csrf
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Form Tambah Kode Agenda</h5>
+                            <h5 class="modal-title" id="exampleModalLabel">Form Tambah Surat Keluar</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                             </button>
                         </div>
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col mb-6">
-                                    <label for="kodeBagian" class="form-label">Kode Agenda</label>
-                                    <input type="text" name="kode_bagian" id="kodeBagian" class="form-control"
-                                        placeholder="Masukkan Kode">
+                                    <label for="kodeBagian" class="form-label">Nama Instansi</label>
+                                    <input type="text" name="nama_instansi" id="kodeBagian" class="form-control"
+                                        placeholder="Masukkan Nama Instansi">
+                                </div>
+                            </div>
+                            <div class="row g-6">
+                                <div class="col mb-6">
+                                    <label for="emailBasic" class="form-label">Nama Pengirim</label>
+                                    <input type="text" name="nama_pengirim" id="emailBasic" class="form-control"
+                                        placeholder="Mr. Boom">
+                                </div>
+                                <div class="col mb-6">
+                                    <label for="dobBasic" class="form-label">Jabatan Pengirim</label>
+                                    <input type="text" name="jabatan_pengirim" id="dobBasic" class="form-control">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col mb-6">
-                                    <label for="namaBagian" class="form-label">Nama Divisi / Bagian</label>
-                                    <input type="text" name="nama_bagian" id="namaBagian" class="form-control"
-                                        placeholder="Nama Bagian">
+                                    <label for="namaBagian" class="form-label">Periode Pengirim</label>
+                                    <input type="text" name="periode_pengirim" id="namaBagian" class="form-control"
+                                        placeholder="2023-2024">
                                 </div>
                             </div>
                         </div>
@@ -104,24 +136,37 @@
                     <form id="formEditAgenda" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
-                        <input type="number" id="EidAgenda" name="id_agenda" hidden />
+                        <input type="number" id="EidInstansi" name="id_agenda" hidden />
                         <div class="modal-header">
-                            <h5 class="modal-title">Edit Surat Masuk</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <h5 class="modal-title">Edit Instansi</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col mb-6">
-                                    <label for="kodeBagian" class="form-label">Kode Agenda</label>
-                                    <input type="text" name="kode_bagian" id="EkodeBagian" class="form-control"
-                                        placeholder="Masukkan Kode">
+                                    <label for="kodeBagian" class="form-label">Nama Instansi</label>
+                                    <input type="text" name="nama_instansi" id="enama_instansi" class="form-control"
+                                        placeholder="Masukkan Nama Instansi">
+                                </div>
+                            </div>
+                            <div class="row g-6">
+                                <div class="col mb-6">
+                                    <label for="emailBasic" class="form-label">Nama Pengirim</label>
+                                    <input type="text" name="nama_pengirim" id="enama_pengirim" class="form-control"
+                                        placeholder="Mr. Boom">
+                                </div>
+                                <div class="col mb-6">
+                                    <label for="dobBasic" class="form-label">Jabatan Pengirim</label>
+                                    <input type="text" name="jabatan_pengirim" id="ejabatan_pengirim"
+                                        class="form-control">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col mb-6">
-                                    <label for="namaBagian" class="form-label">Nama Divisi / Bagian</label>
-                                    <input type="text" name="nama_bagian" id="EnamaBagian" class="form-control"
-                                        placeholder="Nama Bagian">
+                                    <label for="namaBagian" class="form-label">Periode Pengirim</label>
+                                    <input type="text" name="periode_pengirim" id="eperiode_pengirim"
+                                        class="form-control" placeholder="2023-2024">
                                 </div>
                             </div>
                         </div>
@@ -166,17 +211,19 @@
                 var modal = $(this);
 
                 // Ambil data via AJAX
-                $.get('/agenda/' + id + '/edit', function(data) {
+                $.get('/surat-masuk/' + id + '/edit', function(data) {
 
-                    console.log("get its" + id + data.kode_bagian);
+                    console.log("get its" + id + data.nama_instansi);
                     // Isi form dengan data.val(id);
-                    $('#EidAgenda').val(data.id_agenda);
-                    $('#EkodeBagian').val(data.kode_bagian);
-                    $('#EnamaBagian').val(data.nama_bagian);
+                    $('#EidInstansi').val(data.id_instansi);
+                    $('#enama_instansi').val(data.nama_instansi);
+                    $('#enama_pengirim').val(data.nama_pengirim);
+                    $('#ejabatan_pengirim').val(data.jabatan_pengirim);
+                    $('#eperiode_pengirim').val(data.periode_pengirim);
 
 
                     // Update form action
-                    $('#formEditAgenda').attr('action', '/agenda/' + id);
+                    $('#formEditAgenda').attr('action', '/instansi/' + id);
 
                     // Sembunyikan loading, tampilkan form
                     $('#loadingEdit').hide();
@@ -189,14 +236,14 @@
         $('#formEditAgenda').on('submit', function(e) {
             // var formMessages = $(this).data('id');$('#');
             e.preventDefault();
-            let id = $('#EidAgenda').val();
+            let id = $('#EidInstansi').val();
             var data = $(this).serialize();
 
             const csrfToken = document.querySelector('input[name="_token"]').value;
 
             console.log(csrfToken);
             $.ajax({
-                url: `/agenda/${id}`,
+                url: `/surat-masuk/${id}`,
                 type: "PUT",
                 cache: false,
                 data: data,
@@ -240,16 +287,18 @@
 
         function refreshTable(response, token) {
             $('#tabel-agenda').html('');
-            $.each(response.data.agendas, function(index, obj) {
+            $.each(response.data.instansis, function(index, obj) {
                 $('#tabel-agenda').append('' +
                     '<tr>' +
                     '<td>' + (index + 1) + '</td>' +
-                    '<td>' + obj.kode_bagian + '</td>' +
-                    '<td>' + obj.nama_bagian + '</td>' +
+                    '<td>' + obj.nama_instansi + '</td>' +
+                    '<td>' + obj.nama_pengirim + '</td>' +
+                    '<td>' + obj.jabatan_pengirim + '</td>' +
+                    '<td>' + obj.periode_pengirim + '</td>' +
                     '<td>' +
                     '<button class="btn btn-warning btn-sm" data-bs-toggle="modal"' +
-                    ' data-bs-target="#editAgendaModal" data-id="' + obj.id_agenda + '">Ubah</button>' +
-                    ' <form action="/agenda/' + obj.id_agenda + '" method="POST"' +
+                    ' data-bs-target="#editAgendaModal" data-id="' + obj.id_instansi + '">Ubah</button>' +
+                    ' <form action="/surat-masuk/' + obj.id_instansi + '" method="POST"' +
                     ' class="d-inline">' +
                     '<input type="hidden" name="_token" value="' + token + '">' +
                     '<input type="hidden" name="_method" value="DELETE">' +

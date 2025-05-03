@@ -1,5 +1,28 @@
 @extends('layout.app')
+@push('style')
+    <style>
+        .wrap-text {
+            white-space: normal;
+            word-wrap: break-word;
+            max-width: 300px;
+        }
 
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        tr {
+            border-bottom: 1px solid #bcbec0;
+        }
+
+        td,
+        th {
+            border: none;
+            padding: 8px;
+        }
+    </style>
+@endpush
 @section('content')
     <div class="card">
         <div class="row card-header flex-column flex-md-row pb-0 mb-5">
@@ -28,10 +51,10 @@
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Nomor Surat</th>
                         <th>Tanggal Surat</th>
-                        <th>Pengirim</th>
                         <th>Perihal</th>
+                        <th>Pengirim</th>
+                        {{-- <th>Nomor Surat</th> --}}
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -40,13 +63,22 @@
                     @foreach ($suratMasuk as $item)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ $item->nomor_srt }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tanggal_srt)->format('d/m/Y') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($item->tanggal_srt)->format('d/m/Y') }}
+                                @if (!$item->is_read)
+                                    <span class="badge bg-label-success">Baru</span>
+                                    {{-- <span class="badge bg-danger">Baru</span> --}}
+                                @endif
+                            </td>
+                            <td class="wrap-text">{{ $item->perihal }}</td>
+                            {{-- <td>{{ $item->nomor_srt }}</td> --}}
                             <td>{{ $item->instansi->nama_instansi }}</td>
-                            <td>{{ $item->perihal }}</td>
                             <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#editAgendaModal" data-id="{{ $item->id_sm }}">Ubah</button>
+                                <a href="{{ route('surat-masuk.show', $item->id_sm) }}" class="btn btn-info btn-sm">
+                                    Detail
+                                </a>
+                                <a href="{{ route('surat-masuk.edit', $item->id_sm) }}" class="btn btn-warning btn-sm">
+                                    Ubah
+                                </a>
 
                                 <form action="{{ route('surat-masuk.destroy', $item->id_sm) }}" method="POST"
                                     class="d-inline">
@@ -120,7 +152,8 @@
                         <input type="number" id="EidInstansi" name="id_agenda" hidden />
                         <div class="modal-header">
                             <h5 class="modal-title">Edit Instansi</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div class="row">

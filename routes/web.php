@@ -22,6 +22,11 @@ Route::resource('profil', ProfilController::class)->middleware('auth');
 Route::get('/', function () {
     return view('auth');
 });
+// register 
+Route::get('validasi-surat', [SuratKeluarController::class, 'validasiShow'])->name('validasi-surat');
+Route::get('/setujui/{id}', [SuratKeluarController::class, 'setujui'])->name('setujui');
+Route::post('/revisi', [SuratKeluarController::class, 'revisi'])->name('revisi');
+
 // login & logout
 Route::get('login', [AuthController::class, 'login'])->name('login');
 Route::post('actionlogin', [AuthController::class, 'actionlogin'])->name('actionlogin');
@@ -30,8 +35,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/daftarakun', [AuthController::class, 'register'])->name('register');
 
 // dashboard
-Route::get('/dashboard', [AuthController::class, 'home'])->name('dashboard')
-    ->middleware([CheckJabatan::class . ':adminSM, ks']);
+Route::get('/dashboard', [AuthController::class, 'home'])->name('dashboard');
 
 // test
 Route::get('/admin', function () {
@@ -40,7 +44,10 @@ Route::get('/admin', function () {
 Route::get('/kepala', function () {
     return view('kepala');
 });
-
+Route::get('/select', function () {
+    return view('surat-masuk.select2');
+});
+Route::get('/testujuan', [InstansiController::class, 'testujuan']);
 Route::get('/access-denied', function () {
     return view('access-denied'); // Buat view ini nanti
 })->name('access.denied');
@@ -59,3 +66,16 @@ Route::get('/test-helper', function () {
 })->name('test-helper');
 
 Route::get('/get-instansi', [InstansiController::class, 'getInstansi'])->name('get.instansi');
+
+// routes/web.php
+Route::get('/view-sm-pdf/{filename}', function ($filename) {
+    $path = storage_path('app/private/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path, [
+        'Content-Type' => 'application/pdf',
+    ]);
+})->middleware(['auth'])->name('view.private.pdf');

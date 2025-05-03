@@ -44,4 +44,9 @@ class Instansi extends Model
         'jabatan_pengirim',
         'periode_pengirim',
     ];
+
+    public function suratMasuks()
+    {
+        return $this->hasMany(SuratMasuk::class, 'id_pengirim', 'id_instansi');
+    }
 }

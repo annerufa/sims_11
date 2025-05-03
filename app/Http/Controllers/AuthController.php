@@ -7,42 +7,39 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\SuratMasuk;
 
 class AuthController extends Controller
 {
     public function home()
     {
-        switch (session('jabatan')) {
-            case 'admin':
-                return redirect('/admin');
-            case 'ks':
-                return redirect('/kepala');
-            default:
-                return redirect('/');
+        if (Auth::user()) {
+            $jabatan = Auth::user()->jabatan;
+
+
+            if ($jabatan === 'ks') {
+                $unreadData = SuratMasuk::where('is_read', false)->count();
+                return view('home', compact('unreadData'));
+            }
+            return view('home');
         }
+        return redirect('/');
     }
 
     public function login()
     {
         session()->forget('errorLogin');
-        return view('login');
+        return view('auth');
     }
 
     public function actionLogin(Request $request)
     {
         if (Auth::attempt($request->only('no_pegawai', 'password'))) {
             $request->session()->regenerate();
+            session(['jabatan' => Auth::user()->jabatan]);
             // Simpan di session saat login
-            Session(['jabatan' => Auth::user()->jabatan]);
 
-            switch (session('jabatan')) {
-                case 'admin':
-                    return redirect('/admin');
-                case 'ks':
-                    return redirect('/kepala');
-                default:
-                    return redirect('/welcome');
-            }
+            return redirect('/dashboard');
         }
         return back()->withErrors(['email' => 'Invalid credentials']);
     }
@@ -71,10 +68,10 @@ class AuthController extends Controller
         // Simpan di session saat login
         session(['jabatan' => Auth::user()->jabatan]);
 
-        if ($user->jabatan == "admin") {
-            return redirect('/admin');
-        } else if ($user->jabatan == "ks") {
-            return redirect('/kepala');
+
+        if (Auth::check()) {
+            // Login berhasil
+            return redirect('/dashboard')->with('success', 'Login berhasil!');
         }
 
         return back()->withErrors([

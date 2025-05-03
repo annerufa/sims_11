@@ -13,7 +13,7 @@
 @endpush
 @section('content')
     <div class="card">
-        <h5 class="card-header">Form Surat Masuk</h5>
+        <h5 class="card-header">Form Surat Keluar</h5>
         <div class="card-body">
             @if (session('error'))
                 <div class="alert alert-danger">
@@ -21,7 +21,7 @@
                 </div>
             @endif
             <form method="POST"
-                action="{{ isset($data) ? route('surat-masuk.update', $data->id_sm) : route('surat-masuk.store') }}"
+                action="{{ isset($data) ? route('surat-keluar.update', $data->id_sk) : route('surat-keluar.store') }}"
                 enctype="multipart/form-data" id="formSuratMasuk" class="row g-6 fv-plugins-bootstrap5 fv-plugins-framework">
                 @csrf
                 @if (isset($data))
@@ -32,15 +32,15 @@
                 <!-- Account Details -->
 
                 <div class="col-12">
-                    <h6>1. Data Pengirim</h6>
+                    <h6>1. Tujuan Surat</h6>
                     <hr class="mt-0">
                 </div>
 
                 <div class="col-md-12 form-control-validation fv-plugins-icon-container">
-                    <label class="form-label" for="tujuan">Pilih Pengirim Surat:</label>
+                    <label class="form-label" for="tujuan">Pilih Tujuan Surat:</label>
                     <select id="tujuan" name="tujuan" class="form-select">
                         <option disabled selected value="">Pilih Salah Satu</option>
-                        <option value="new">+ Tambah Data Pengirim Baru</option>
+                        <option value="new">+ Tambah Tujuan Baru</option>
                         @foreach ($listInstansi as $instansi)
                             <option value="{{ $instansi->id_instansi }}"
                                 {{ old('tujuan', $data->tujuan ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
@@ -75,73 +75,54 @@
                             placeholder="Masukkan alamat di sini ....">{{ old('alamat', $data->instansi->alamat ?? '') }}</textarea>
                     </div>
                 </div>
+
                 <!-- Personal Info -->
 
                 <div class="col-12">
                     <h6 class="mt-2">2. Detail Isi Surat</h6>
                     <hr class="mt-0">
                 </div>
-                {{-- tgl_diterima, tgl_masuk, no. surat --}}
-                <div class="col-md-4 col-12 mb-6">
-                    <label for="flatpickr-date" class="form-label">Tanggal Diterima</label>
-                    <input type="date" name="tanggal_terima" class="form-control" id="tanggalSuratInput"
-                        value="{{ old('tanggal_terima', $data->tanggal_terima ?? '') }}">
-                    {{-- <input type="date" name="tanggal_terima" class="form-control" placeholder="DD-MM-YYYY (tgl-bln-thn)"
-                        id="flatpickr-date" value="{{ old('tanggal_terima', $data->tanggal_terima ?? '') }}" /> --}}
-                </div>
-                <div class="col-md-4 col-12 mb-6">
+                {{-- <div class="col-md-4 col-12 mb-6">
                     <label for="flatpickr-date" class="form-label">Tanggal Surat</label>
                     <input type="date" name="tanggal_srt" class="form-control" placeholder="01-01-2001"
                         id="tanggal_srt" />
+                </div> --}}
+                <div class="col-md-6 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label">Pengaju</label>
+                    <input type="text" class="form-control" name="pengaju"
+                        value="{{ old('pengaju', $data->pengaju ?? '') }}">
                 </div>
-                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                    <label class="form-label">Nomor Surat</label>
-                    <input type="text" class="form-control" name="nomor_srt"
-                        value="{{ old('nomor_srt', $data->nomor_srt ?? '') }}">
-                </div>
-                {{-- sifat surat, jenis surat, jenis agenda --}}
-                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                    <label for="sifat_srt" class="form-label">Sifat Surat</label>
-                    <select id="defaultSelect" name="sifat_srt" class="form-select">
-                        <option disabled {{ old('sifat_srt', $data->sifat_srt ?? '') == '' ? 'selected' : '' }}>
-                            Pilih Salah Satu
-                        </option>
-                        <option value="Biasa" {{ old('sifat_srt', $data->sifat_srt ?? '') == 'Biasa' ? 'selected' : '' }}>
-                            Biasa
-                        </option>
-                        <option value="Segera"
-                            {{ old('sifat_srt', $data->sifat_srt ?? '') == 'Segera' ? 'selected' : '' }}>
-                            Segera
-                        </option>
-                        <option value="Sangat segera"
-                            {{ old('sifat_srt', $data->sifat_srt ?? '') == 'Sangat segera' ? 'selected' : '' }}>
-                            Sangat Segera
-                        </option>
-                        <option value="Rahasia"
-                            {{ old('sifat_srt', $data->sifat_srt ?? '') == 'Rahasia' ? 'selected' : '' }}>
-                            Rahasia
-                        </option>
-                    </select>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label for="jenis_srt" class="form-label">Jenis Surat</label>
-                    <select id="defaultSelect" id="jenis_srt" name="jenis_srt" class="form-select">
+                    <select id="jenis_srt" name="jenis_srt" class="form-select">
+                        <option disabled selected>Pilih Salah Satu</option>
                         @foreach ($jenisSuratOptions as $option)
                             <option value="{{ $option }}"
-                                {{ old('jenis_surat', $data->jenis_surat ?? '') == $option ? 'selected' : '' }}>
+                                {{ old('jenis_srt', $data->jenis_srt ?? '') == $option ? 'selected' : '' }}>
                                 {{ $option }}
                             </option>
                         @endforeach
-
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
+                    <label for="validatorSelect" class="form-label">Validator</label>
+                    <select id="validatorSelect" name="validator_id" class="form-select">
+                        <option disabled selected>Pilih Salah Satu</option>
+                        @foreach ($validator as $validator)
+                            <option value="{{ $validator->id }}"
+                                {{ old('validator', $data->validator ?? '') == $validator->id ? 'selected' : '' }}>
+                                {{ $validator->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-6">
                     <label for="agenda" class="form-label">Jenis Agenda</label>
-                    <select id="defaultSelect" name="agenda_id" class="form-select">
+                    <select id="agenda" name="agenda_id" class="form-select">
                         <option>Pilih Salah Satu</option>
                         @foreach ($agenda as $agenda)
                             <option value="{{ $agenda->id_agenda }}"
-                                {{ old('agenda', $data->agenda ?? '') == $agenda->id_agenda ? 'selected' : '' }}>
+                                {{ old('agenda', $data->agenda_id ?? '') == $agenda->id_agenda ? 'selected' : '' }}>
                                 {{ $agenda->nama_bagian }}
                             </option>
                             {{-- <option value="{{ $agenda->id_agenda }}">{{ $agenda->nama_bagian }}</option> --}}
@@ -150,25 +131,24 @@
                 </div>
                 {{-- Perihal --}}
                 <div class="col-md-12">
-                    <label class="form-label" for="perihal">Perihal</label>
+                    <label class="form-label" for="perihal">Catatan</label>
                     <textarea class="form-control" name="perihal" id="perihal" cols="30" rows="2">{{ old('perihal', $data->perihal ?? '') }}</textarea>
                 </div>
                 {{-- File Surat --}}
                 <div class="col-md-12">
-                    <label class="form-label" for="file">File Scan Surat Masuk</label>
-                    <input class="form-control" type="file" name="file" id="file"
-                        value="{{ old('file', $data->file ?? '') }}">
+                    <label class="form-label" for="file_draft">File Draft Surat Keluar</label>
+                    <input class="form-control" type="file" name="file_draft" id="file_draft">
                 </div>
 
-                @if (isset($data) && $data->file)
+                @if (isset($data) && $data->file_draft)
                     <div class="mt-2">
                         <p>File saat ini:</p>
 
                         <!-- Atau untuk menampilkan langsung di iframe -->
-                        <iframe src="{{ Storage::url($data->file) }}" width="100%" height="600px"
+                        <iframe src="{{ Storage::url($data->file_draft) }}" width="100%" height="600px"
                             style="border: none;">
                         </iframe>
-                        <a href="{{ Storage::url($data->file) }}">Download file</a>
+                        <a href="{{ Storage::url($data->file_draft) }}">Download file</a>
                     </div>
                 @endif
 
@@ -189,20 +169,6 @@
 @push('script')
     <script src="{{ asset('assets/vendor/libs/jquery-timepicker/jquery-timepicker.js') }}"></script>
     <script src="{{ asset('assets/js/form-picker.js') }}"></script>
-    <script>
-        flatpickr("#tanggalSuratInput", {
-            dateFormat: "d-m-Y",
-            defaultDate: @json(old(
-                    'tanggal_terima',
-                    isset($data) ? \Carbon\Carbon::parse($data->tanggal_terima)->format('d-m-Y') : now()->format('d-m-Y')))
-        });
-        flatpickr("#tanggal_srt", {
-            dateFormat: "d-m-Y",
-            defaultDate: @json(old(
-                    'tanggal_srt',
-                    isset($data) ? \Carbon\Carbon::parse($data->tanggal_srt)->format('d-m-Y') : now()->format('d-m-Y')))
-        });
-    </script>
     <script>
         $('#tujuan').on('change', function() {
 

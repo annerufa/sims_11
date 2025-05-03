@@ -1,16 +1,5 @@
 @extends('layout.app')
-@push('style')
-    <style>
-        .hilang {
-            display: none;
-        }
 
-        .cc {
-            row-gap: 10px;
-            margin-top: 10px;
-        }
-    </style>
-@endpush
 @section('content')
     <div class="card">
         <h5 class="card-header">Form Surat Masuk</h5>
@@ -36,45 +25,38 @@
                     <hr class="mt-0">
                 </div>
 
-                <div class="col-md-12 form-control-validation fv-plugins-icon-container">
-                    <label class="form-label" for="tujuan">Pilih Pengirim Surat:</label>
-                    <select id="tujuan" name="tujuan" class="form-select">
-                        <option disabled selected value="">Pilih Salah Satu</option>
-                        <option value="new">+ Tambah Data Pengirim Baru</option>
+                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="kota">Pilih atau ketik nama Instansi:</label>
+                    <input class="form-control" placeholder="Pilih atau ketik nama instansi" list="instansiList"
+                        id="nama_instansi" name="id_pengirim" autocomplete="off"
+                        value="{{ old('nama_instansi', $data->instansi->nama_instansi ?? '') }}">
+                    <datalist id="instansiList">
                         @foreach ($listInstansi as $instansi)
                             <option value="{{ $instansi->id_instansi }}"
-                                {{ old('tujuan', $data->tujuan ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
-                                ({{ $instansi->nama_pengirim }})
-                                <br>{{ $instansi->jabatan_pengirim }} -
+                                {{ old('id_pengirim', $data->id_pengirim ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
                                 {{ $instansi->nama_instansi }}
                             </option>
                         @endforeach
-                    </select>
+                    </datalist>
                 </div>
-                <div id="form-tujuan-baru" class="hilang cc">
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="nama_instansi">Nama Instansi</label>
-                        <input type="text" id="nama_instansi" class="form-control" placeholder="Nama Instansi"
-                            name="nama_instansi" value="{{ old('nama_instansi', $data->instansi->nama_instansi ?? '') }}">
-                    </div>
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="nama_pengirim">Nama Tujuan</label>
-                        <input type="text" id="nama_pengirim" class="form-control" placeholder="Nama Tujuan"
-                            name="nama_pengirim" value="{{ old('nama_pengirim', $data->instansi->nama_pengirim ?? '') }}">
-                    </div>
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="jabatan_pengirim">Jabatan Tujuan</label>
-                        <input class="form-control" type="text" id="jabatan_pengirim" name="jabatan_pengirim"
-                            placeholder="Jabatan Tujuan"
-                            value="{{ old('jabatan_pengirim', $data->instansi->jabatan_pengirim ?? '') }}">
-                    </div>
+                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="nama_pengirim">Nama Pengirim</label>
+                    <input type="text" id="nama_pengirim" class="form-control" placeholder="Abraham" name="nama_pengirim"
+                        value="{{ old('nama_pengirim', $data->instansi->nama_pengirim ?? '') }}">
+                </div>
+                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="jabatan_pengirim">Jabatan Pengirim</label>
+                    <input class="form-control" type="text" id="jabatan_pengirim" name="jabatan_pengirim"
+                        placeholder="Jabatan (periode)"
+                        value="{{ old('jabatan_pengirim', $data->instansi->jabatan_pengirim ?? '') }}">
+                </div>
 
-                    <div class="col-md-12 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="alamat">Alamat Tujuan</label>
-                        <textarea class="form-control" name="alamat" id="alamat" cols="30" rows="2"
-                            placeholder="Masukkan alamat di sini ....">{{ old('alamat', $data->instansi->alamat ?? '') }}</textarea>
-                    </div>
+                <div class="col-md-12 form-control-validation fv-plugins-icon-container">
+                    <label class="form-label" for="formValidationPass">Alamat Pengirim</label>
+                    <textarea class="form-control" name="alamat_pengirim" id="alamat_pengirim" cols="30" rows="2"
+                        placeholder="Masukkan alamat di sini ....">{{ old('alamat_pengirim', $data->instansi->alamat ?? '') }}</textarea>
                 </div>
+
                 <!-- Personal Info -->
 
                 <div class="col-12">
@@ -204,26 +186,68 @@
         });
     </script>
     <script>
-        $('#tujuan').on('change', function() {
+        $('#nama_instansi').on('change', function() {
+            let selectedValue = $(this).val();
 
-            const select = document.getElementById('tujuan');
-            const formBaru = document.getElementById('form-tujuan-baru');
-            if (select.value === 'new') {
-                // Tampilkan form baru
+            // Cek apakah nilai yang dipilih adalah teks (nama instansi) atau angka (ID instansi)
+            if (isNaN(selectedValue)) {
+                // Jika teks (nama instansi), cari data instansi berdasarkan nama
+                $.ajax({
+                    url: '{{ route('get.instansi') }}',
+                    type: 'GET',
+                    data: {
+                        nama_instansi: selectedValue
+                    },
+                    success: function(res) {
+                        if (res) {
+                            let jabatan = (res.jabatan_pengirim || '') +
+                                (res.periode_pengirim ? ' (' + res.periode_pengirim + ')' : '');
+                            $('#jabatan_pengirim').val(jabatan.trim()).attr('readonly', true);
+                            $('#nama_pengirim').val(res.nama_pengirim || '').attr('readonly', true);
+                            $('#alamat_pengirim').val(res.alamat || '').attr('readonly', true);
 
-                formBaru.classList.remove('hilang');
-                formBaru.classList.add('row');
-
-                // Kosongkan input tersembunyi
-                document.getElementById('nama_instansi').value = '';
-                document.getElementById('nama_pengirim').value = '';
-                document.getElementById('jabatan_pengirim').value = '';
-                document.getElementById('alamat').value = '';
+                            // Update nilai hidden ID jika diperlukan
+                            $('input[name="id_pengirim"]').val(res.id_instansi);
+                        } else {
+                            resetInstansiFields();
+                        }
+                    },
+                    error: function() {
+                        console.log('Gagal ambil data instansi.');
+                        resetInstansiFields();
+                    }
+                });
             } else {
-                // Sembunyikan form baru
-                formBaru.classList.add('hilang');
-                formBaru.classList.remove('row');
+                // Jika angka (ID instansi), cari data instansi berdasarkan ID
+                $.ajax({
+                    url: '{{ route('get.instansi') }}',
+                    type: 'GET',
+                    data: {
+                        id_instansi: selectedValue
+                    },
+                    success: function(res) {
+                        if (res) {
+                            let jabatan = (res.jabatan_pengirim || '') +
+                                (res.periode_pengirim ? ' (' + res.periode_pengirim + ')' : '');
+                            $('#jabatan_pengirim').val(jabatan.trim()).attr('readonly', true);
+                            $('#nama_pengirim').val(res.nama_pengirim || '').attr('readonly', true);
+                            $('#alamat_pengirim').val(res.alamat || '').attr('readonly', true);
+                        } else {
+                            resetInstansiFields();
+                        }
+                    },
+                    error: function() {
+                        console.log('Gagal ambil data instansi.');
+                        resetInstansiFields();
+                    }
+                });
             }
         });
+
+        function resetInstansiFields() {
+            $('#nama_pengirim').val('').removeAttr('readonly');
+            $('#jabatan_pengirim').val('').removeAttr('readonly');
+            $('#alamat_pengirim').val('').removeAttr('readonly');
+        }
     </script>
 @endpush
