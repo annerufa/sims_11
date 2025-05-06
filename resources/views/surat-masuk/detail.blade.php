@@ -92,6 +92,7 @@
                 </iframe>
                 <hr class="mt-2 mb-4">
             </div>
+            @php $tindak = false;   @endphp
             <div class="col-12">
                 <div class="row card-header flex-column flex-md-row pb-0 mb-5">
                     <div
@@ -110,7 +111,7 @@
                 </div>
                 <table class="table table-hover detail-text ">
                     <thead>
-                        <tr>
+                        <tr style="font-weight: bold;">
                             <td>Diteruskan kepada</td>
                             <td>Dengan hormat harap</td>
                             <td>catatan</td>
@@ -118,13 +119,14 @@
                         </tr>
                     </thead>
                     <tbody id="tabel-agenda">
+
                         @foreach ($disposisi as $disposisiItem)
                             <tr>
                                 <!-- Diteruskan kepada -->
                                 <td>
                                     @foreach ($disposisiItem->penerimas as $penerima)
                                         <span class="penerima {{ $loop->iteration % 2 == 0 ? 'even' : 'odd' }}">
-                                            {{ $penerima->user->nama }}
+                                            {{ $penerima->nama }}
                                         </span>
                                         @if (!$loop->last)
                                             ,
@@ -148,19 +150,33 @@
 
                                 <!-- Status -->
                                 <td>
+
+                                    {{-- @if (auth()->user()->jabatan === 'ks' || auth()->user()->jabatan === 'admin') --}}
                                     @foreach ($disposisiItem->penerimas as $penerima)
-                                        <span class="status {{ $penerima->status_baca == 1 ? 'read' : 'unread' }}">
-                                            {{ $penerima->status_baca == 1 ? 'Sudah Dibaca' : 'Belum Dibaca' }}
-                                        </span>
-                                        @if (!$loop->last)
-                                            <br>
+                                        @if (!$penerima->pivot->status_tugas)
+                                            'belum ada tindak lanjut'
+                                            @php
+                                                if ($penerima->id == auth()->id()) {
+                                                    $tindak = true;
+                                                }
+                                            @endphp
+                                        @else
+                                            <span class="status"> 'telah ditindak lanjuti'</span>
                                         @endif
                                     @endforeach
                                 </td>
                             </tr>
                         @endforeach
+
                     </tbody>
                 </table>
+                <div class="mb-5">
+                    {{-- status --}}
+                    @if ((auth()->user()->jabatan === 'ks' || auth()->user()->jabatan === 'admin') && $tindak)
+                        <a href="{{ route('disDone', $disposisi->id_disposisi) }}" class="btn btn-info">Tindak
+                            lanjuti</a>
+                    @endif
+                </div>
             </div>
         </div>
         <div class="modal fade" id="modalDisposisi" tabindex="-1" aria-labelledby="modalDisposisiLabel" aria-hidden="true">
@@ -227,79 +243,5 @@
     <script>
         $(".select2").select2();
         $(".select2Dark1").select2();
-    </script>
-    <script>
-        // Ambil CSRF token dari meta tag
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-        $(document).ready(function() {
-            $('#formDisposisi').on('submit', function(e) {
-                e.preventDefault(); // Cegah reload halaman
-
-                var form = $(this);
-                var url = form.attr('action');
-                var formData = form.serialize(); // Ambil semua data form
-
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: formData,
-                    success: function(response) {
-                        // Tutup modal dan reset form jika sukses
-                        $('#modalDisposisi').modal('hide');
-                        form[0].reset();
-                        $('.select2').val(null).trigger('change');
-
-                        // Tampilkan notifikasi (opsional)
-                        alert('Disposisi berhasil dikirim!');
-
-                        refreshTable(response);
-                    },
-                    error: function(xhr) {
-                        // Tampilkan error (bisa kamu sesuaikan)
-                        alert('Terjadi kesalahan saat mengirim disposisi.');
-                        console.log(xhr.responseText);
-                    }
-                });
-            });
-        });
-
-        function refreshTable(response) {
-            $('#tabel-agenda').html(''); // Kosongkan tabel terlebih dahulu
-
-            $.each(response.data, function(index, obj) {
-                let perintahArray = obj.perintah.split(', '); // Split berdasarkan koma dan spasi
-
-                // Membuat HTML untuk perintah dengan <span> dan <br>
-                let perintahHtml = perintahArray.map(item => `<span>${item}</span><br>`).join('');
-
-                // Menambahkan baris data ke tabel
-                $('#tabel-agenda').append('' +
-                    '<tr>' +
-                    // '<td>' + (index + 1) + '</td>' + // Nomor urut
-                    '<td>' + obj.penerimas.map(penerima => penerima.user.nama).join(', ') + '</td>' +
-                    // Daftar penerima
-                    '<td>' + perintahHtml + '</td>' + // Perintah yang sudah dibentuk
-                    '<td>' + obj.catatan + '</td>' +
-                    '<td>' +
-                    '<button class="btn btn-warning btn-sm" data-bs-toggle="modal"' +
-                    ' data-bs-target="#editAgendaModal" data-id="' + obj.id_disposisi + '">Ubah</button>' +
-                    ' <form action="/disposisi/' + obj.id_disposisi + '" method="POST"' +
-                    ' class="d-inline">' +
-                    '<input type="hidden" name="_token" value="' + csrfToken + '">' +
-                    '<input type="hidden" name="_method" value="DELETE">' +
-                    '<button type="submit" class="btn btn-danger btn-sm"' +
-                    ' onclick="return confirm(\'Apakah Anda yakin?\')">Hapus</button>' +
-                    '</form>' +
-                    '</td>' +
-                    '</tr>'
-                );
-            });
-        }
     </script>
 @endpush

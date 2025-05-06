@@ -123,34 +123,7 @@
                                             </li>
                                         </ul>
                                         <div class="border-1 border-light border-dashed my-4"></div>
-                                        <ul class="timeline mb-0">
-                                            <li class="timeline-item ps-6 border-left-dashed">
-                                                <span
-                                                    class="timeline-indicator-advanced timeline-indicator-success border-0 shadow-none">
-                                                    <i class="icon-base bx bx-map"></i>
-                                                </span>
-                                                <div class="timeline-event ps-1">
-                                                    <div class="timeline-header">
-                                                        <small class="text-success text-uppercase">Pengirim</small>
-                                                    </div>
-                                                    <h6 class="my-50">Veronica Herman</h6>
-                                                    <p class="text-body mb-0">162 Windsor, California(CA), 95492</p>
-                                                </div>
-                                            </li>
-                                            <li class="timeline-item ps-6 border-transparent">
-                                                <span
-                                                    class="timeline-indicator-advanced timeline-indicator-primary border-0 shadow-none">
-                                                    <i class="icon-base bx bx-map"></i>
-                                                </span>
-                                                <div class="timeline-event ps-1">
-                                                    <div class="timeline-header">
-                                                        <small class="text-primary text-uppercase">Receiver</small>
-                                                    </div>
-                                                    <h6 class="my-50">Helen Jacobs</h6>
-                                                    <p class="text-body mb-0">487 Sunset, California(CA), 94043</p>
-                                                </div>
-                                            </li>
-                                        </ul>
+
                                     </div>
                                     <div class="tab-pane fade" id="navs-justified-link-preparing" role="tabpanel">
                                         <ul class="timeline mb-0">

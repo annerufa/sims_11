@@ -8,8 +8,9 @@ use App\Models\Agenda;
 use App\Models\Disposisi;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+// use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 
 class SuratMasukController extends Controller
 {
@@ -18,12 +19,18 @@ class SuratMasukController extends Controller
      */
     public function index()
     {
-        $unreadData = SuratMasuk::where('is_read', false)->count();
+        $jabatan =  Auth::user()->jabatan;
+        $userId = Auth::user()->id;
+        if ($jabatan === 'admin' || $jabatan === 'ks') {
+            $suratMasuk = SuratMasuk::with('instansi')->latest()->get();
+        } else {
+            $suratMasuk = SuratMasuk::with('disposisi.penerimas')
+                ->whereHas('disposisi.penerimas', function ($query) use ($userId) {
+                    $query->where('users.id', $userId);
+                })->get();
+        }
 
-        // $suratMasuk = SuratMasuk::latest()->paginate(10);
-        $suratMasuk = SuratMasuk::with('instansi')->get();
-
-        return view('surat-masuk.index', compact('suratMasuk', 'unreadData'));
+        return view('surat-masuk.index', compact('suratMasuk'));
     }
 
     public function create()
@@ -50,10 +57,7 @@ class SuratMasukController extends Controller
 
     public function store(Request $request)
     {
-
         try {
-            // seluruh isi function
-
             $validated = $request->validate([
                 'jenis_srt' => 'required',
                 'sifat_srt' => 'required',
@@ -69,9 +73,8 @@ class SuratMasukController extends Controller
             $tanggal_srt = \Carbon\Carbon::createFromFormat('d-m-Y', $request->tanggal_srt)->format('Y-m-d');
             $tanggal_terima = \Carbon\Carbon::createFromFormat('d-m-Y', $request->tanggal_terima)->format('Y-m-d');
 
-
             // Cari instansi berdasarkan nama
-            $instansi = Instansi::where('id_instansi', $request->id_pengirim)->first();
+            $instansi = Instansi::where('id_instansi', $request->pengirim)->first();
 
             // Jika belum ada, buat baru
             if (!$instansi) {
@@ -83,7 +86,7 @@ class SuratMasukController extends Controller
                 $b = $matches[2] ?? null; // "2024-2029"
 
                 $instansi = Instansi::create([
-                    'nama_instansi' => $request->id_pengirim,
+                    'nama_instansi' => $request->nama_instansi,
                     'nama_pengirim' => $request->nama_pengirim,
                     'jabatan_pengirim' => $a,
                     'periode_pengirim' => $b,
@@ -91,20 +94,14 @@ class SuratMasukController extends Controller
                 ]);
             }
 
-
             if ($request->hasFile('file')) {
                 $filename = 'surat-' . time() . '.' . $request->file('file')->getClientOriginalExtension();
-
                 // Simpan ke public/surat-masuk
                 $request->file('file')->move(public_path('suratMasuk'), $filename);
-
-                // Simpan path relatif ke database (misal: 'surat-masuk/nama-file.pdf')
+                // Simpan path relatif ke database 
                 $validated['file'] = 'suratMasuk/' . $filename;
-                // $validated['file'] = $request->file('file')->storeAs('surat-masuk', $filename, 'public');
-                // $request->file('file')->move(public_path('surat-masuk'), $filename);
             }
 
-            // Gunakan id_instansi untuk input ke surat_masuk
             $validated['id_pengirim'] = $instansi->id_instansi;
             $validated['tanggal_terima'] = $tanggal_terima;
             $validated['tanggal_srt'] = $tanggal_srt;
@@ -113,8 +110,7 @@ class SuratMasukController extends Controller
 
             // Cari nomor urut terakhir untuk divisi ini
             $lastNumber = SuratMasuk::where('agenda_id', $request->agenda_id)
-                ->max('nomor_urut'); // cari nomor urut terbesar
-
+                ->max('nomor_urut');
             $validated['nomor_urut'] = $lastNumber ? $lastNumber + 1 : 1;
 
             SuratMasuk::create($validated);
@@ -132,10 +128,14 @@ class SuratMasukController extends Controller
         // $unreadData = SuratMasuk::where('is_read', false)->count();
         $users = User::all();
         $dataSurat = SuratMasuk::where('id_sm', $id)->with(['instansi', 'agenda'])->first();
-        $disposisi = Disposisi::where('surat_masuk_id', $id)->with(['penerimas.user'])->get();
-        $dataSurat->is_read = 1;
-        $dataSurat->save();
-        // dd($dataSurat->is_read);
+        // $disposisi = Disposisi::where('surat_masuk_id', $id)->with(['penerimas.user'])->get();
+        $disposisi = Disposisi::where('surat_masuk_id', $id)->with(['penerimas'])->get();
+        if (Auth::user()->jabatan === 'ks') {
+            $dataSurat->is_read = 1;
+            $dataSurat->save();
+        }
+        // dd($dataSurat);
+        // dd($disposisi);
         return view('surat-masuk.detail', compact('dataSurat', 'users', 'disposisi'));
     }
 
@@ -160,7 +160,7 @@ class SuratMasukController extends Controller
         $listInstansi = Instansi::all();
         $agenda = Agenda::all();
 
-        return view('surat-masuk.form', [
+        return view('surat-masuk.create', [
             'data' => $data,
             'listInstansi' => $listInstansi,
             'agenda' => $agenda,
@@ -172,43 +172,72 @@ class SuratMasukController extends Controller
 
     public function update(Request $request, SuratMasuk $suratMasuk)
     {
-        $validated = $request->validate([
-            'jenis_srt' => 'required',
-            'sifat_srt' => 'required',
-            'nomor_srt' => 'required',
-            'tanggal_srt' => 'required|date',
-            'tanggal_terima' => 'required|date',
-            'id_pengirim' => 'required',
-            'perihal' => 'required',
-            'lampiran' => 'nullable',
-            'keterangan' => 'nullable',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-        ]);
+        try {
+            $validated = $request->validate([
+                'jenis_srt' => 'required',
+                'sifat_srt' => 'required',
+                'nomor_srt' => 'required',
+                'tanggal_srt' => 'required|date',
+                'tanggal_terima' => 'required|date',
+                'pengirim' => 'required',
+                'perihal' => 'required',
+                'lampiran' => 'nullable',
+                'keterangan' => 'nullable',
+                'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            ]);
+            // Cari instansi berdasarkan nama
+            $instansi = Instansi::where('id_instansi', $request->pengirim)->first();
 
-        if ($request->hasFile('file')) {
-            // Hapus file lama jika ada
-            if ($suratMasuk->file) {
-                Storage::delete($suratMasuk->file);
+            // Jika belum ada, buat baru
+            if (!$instansi) {
+                $input = $request->jabatan_pengirim;
+
+                preg_match('/^(.*?)\s*\((.*?)\)$/', $input, $matches);
+
+                $a = $matches[1] ?? $input; // "Kepala Sekolah"
+                $b = $matches[2] ?? null; // "2024-2029"
+
+                $instansi = Instansi::create([
+                    'nama_instansi' => $request->nama_instansi,
+                    'nama_pengirim' => $request->nama_pengirim,
+                    'jabatan_pengirim' => $a,
+                    'periode_pengirim' => $b,
+                    'alamat_pengirim' => $request->alamat_pengirim,
+                ]);
             }
-            $validated['file'] = $request->file('file')->store('surat-masuk');
+
+            if ($request->hasFile('file')) {
+                $filename = 'surat-' . time() . '.' . $request->file('file')->getClientOriginalExtension();
+                // Simpan ke public/surat-masuk
+                $request->file('file')->move(public_path('suratMasuk'), $filename);
+                // Simpan path relatif ke database 
+                $validated['file'] = 'suratMasuk/' . $filename;
+            }
+
+            // Gunakan id_instansi untuk input ke surat_masuk
+
+            $tanggal_srt = \Carbon\Carbon::createFromFormat('d-m-Y', $request->tanggal_srt)->format('Y-m-d');
+            $tanggal_terima = \Carbon\Carbon::createFromFormat('d-m-Y', $request->tanggal_terima)->format('Y-m-d');
+
+            $validated['id_pengirim'] = $instansi->id_instansi;
+            $validated['tanggal_terima'] = $tanggal_terima;
+            $validated['tanggal_srt'] = $tanggal_srt;
+
+
+            $suratMasuk->update($validated);
+
+            return redirect()->route('surat-masuk.index')
+                ->with('success', 'Surat masuk berhasil diperbarui');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Gagal menyimpan surat masuk: ' . $e->getMessage());
         }
-        $tanggal_srt = \Carbon\Carbon::createFromFormat('d-m-Y', $request->tanggal_srt)->format('Y-m-d');
-        $tanggal_terima = \Carbon\Carbon::createFromFormat('d-m-Y', $request->tanggal_terima)->format('Y-m-d');
-
-        $validated['tanggal_terima'] = $tanggal_terima;
-        $validated['tanggal_srt'] = $tanggal_srt;
-
-
-        $suratMasuk->update($validated);
-
-        return redirect()->route('surat-masuk.index')
-            ->with('success', 'Surat masuk berhasil diperbarui');
     }
 
     public function destroy(SuratMasuk $suratMasuk)
     {
-        if ($suratMasuk->file) {
-            Storage::delete($suratMasuk->file);
+
+        if ($suratMasuk->file_draft && File::exists(public_path($suratMasuk->file_draft))) {
+            File::delete(public_path($suratMasuk->file_draft));
         }
 
         $suratMasuk->delete();

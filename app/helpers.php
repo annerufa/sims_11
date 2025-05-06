@@ -57,8 +57,16 @@ if (!function_exists('get_route_title')) {
             'dashboard' => 'Beranda',
             'surat-masuk.index' => 'Daftar Surat Masuk',
             'surat-masuk.create' => 'Buat Surat Masuk Baru',
-            'surat-masuk.edit' => 'Edit Surat Masuk',
+            'surat-masuk.edit' => 'Ubah Surat Masuk',
             'surat-masuk.show' => 'Detail Surat Masuk',
+            'surat-keluar.index' => 'Daftar Surat Keluar',
+            'surat-keluar.create' => 'Buat Surat Keluar Baru',
+            'surat-keluar.edit' => 'Ubah Surat Keluar',
+            'surat-keluar.show' => 'Detail Surat Keluar',
+            'disposisi.index' => 'Daftar Disposisi',
+            'disposisi.create' => 'Buat Disposisi Baru',
+            'disposisi.edit' => 'Ubah Disposisi',
+            'disposisi.show' => 'Detail Disposisi',
             // Tambahkan mapping lainnya sesuai kebutuhan
         ];
 

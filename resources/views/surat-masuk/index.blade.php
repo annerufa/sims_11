@@ -21,20 +21,33 @@
             border: none;
             padding: 8px;
         }
+
+        .mxs {
+            color: rgb(15, 138, 107);
+            font-size: x-large;
+            position: relative;
+            top: 5px;
+            left: 5px;
+        }
     </style>
 @endpush
 @section('content')
+    {{-- ambil data role dan route --}}
+    @php
+        $role = Auth::user()->jabatan; // misalnya 'admin' atau 'kepala_sekolah'
+    @endphp
     <div class="card">
         <div class="row card-header flex-column flex-md-row pb-0 mb-5">
             <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
                 <h5 class="card-title mb-0 text-md-start text-center">Daftar Surat Masuk</h5>
             </div>
-            <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
-                <a href="{{ route('surat-masuk.create') }}">
-                    <button class="btn btn-primary mb-3 ">Tambah Surat Masuk</button>
-                </a>
-                {{-- <button class="btn btn-primary mb-3 " data-bs-toggle="modal" data-bs-target="#addAgendaModal">Tambah Surat Masuk</button> --}}
-            </div>
+            @if ($role === 'admin')
+                <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
+                    <a href="{{ route('surat-masuk.create') }}">
+                        <button class="btn btn-primary mb-3 ">Tambah Surat Masuk</button>
+                    </a>
+                </div>
+            @endif
         </div>
         <div class="table-responsive text-nowrap">
 
@@ -64,29 +77,38 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->tanggal_srt)->format('d/m/Y') }}
-                                @if (!$item->is_read)
-                                    <span class="badge bg-label-success">Baru</span>
-                                    {{-- <span class="badge bg-danger">Baru</span> --}}
+                                @if ($role === 'admin')
+                                    @if ($item->is_read)
+                                        <i class='mxs bx bxs-user-check'></i>
+                                    @endif
+                                @elseif ($role === 'ks')
+                                    @if (!$item->is_read)
+                                        <span class="badge bg-label-success">Baru</span>
+                                    @endif
                                 @endif
                             </td>
                             <td class="wrap-text">{{ $item->perihal }}</td>
                             {{-- <td>{{ $item->nomor_srt }}</td> --}}
                             <td>{{ $item->instansi->nama_instansi }}</td>
                             <td>
+
                                 <a href="{{ route('surat-masuk.show', $item->id_sm) }}" class="btn btn-info btn-sm">
                                     Detail
                                 </a>
-                                <a href="{{ route('surat-masuk.edit', $item->id_sm) }}" class="btn btn-warning btn-sm">
-                                    Ubah
-                                </a>
+                                @if ($role === 'admin' && !$item->is_read)
+                                    <a href="{{ route('surat-masuk.edit', $item->id_sm) }}"
+                                        class="btn btn-warning btn-sm">Ubah
+                                    </a>
 
-                                <form action="{{ route('surat-masuk.destroy', $item->id_sm) }}" method="POST"
-                                    class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Apakah Anda yakin?')">Hapus</button>
-                                </form>
+                                    <form action="{{ route('surat-masuk.destroy', $item->id_sm) }}" method="POST"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Apakah Anda yakin?')">Hapus</button>
+                                    </form>
+                                    {{-- @elseif($role === 'admin' && !$item->is_read) --}}
+                                @endif
                             </td>
                         </tr>
                     @endforeach

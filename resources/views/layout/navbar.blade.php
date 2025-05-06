@@ -12,7 +12,7 @@
             <div class="nav-item d-flex align-items-center">
                 <!-- <span class="w-px-22 h-px-22"><i class="icon-base bx bx-search icon-md"></i></span> -->
                 <!-- <span class="w-px-22 h-px-22"></span> -->
-                <b><span>{{ get_route_title() }}</span></b>
+                <h5>Beranda | </h5><b><span>{{ get_route_title() }}</span></b>
             </div>
         </div>
         <!-- /Search -->

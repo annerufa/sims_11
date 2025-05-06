@@ -141,21 +141,8 @@ class DisposisiController extends Controller
         // Attach penerimas with pivot data
         $disposisi->penerimas()->attach($pivotData);
 
-
-        // foreach ($request->penerima as $penerimaId) {
-        //     DisposisiPenerima::create([
-        //         'disposisi_id' => $disposisi->id_disposisi,
-        //         'user_id' => $penerimaId,
-        //         'status_tugas' => 0,
-        //     ]);
-        // }
-
         return redirect()->route('disposisi.index')
-            ->with('success', 'Disposisi berhasil ditambahkan');
-        // return response()->json([
-        //     'message' => 'Disposisi berhasil dikirim.',
-        //     'data' => $disposisi,
-        // ]);
+            ->with('success', 'Disposisi berhasil ditambahkan');\
     }
 
 

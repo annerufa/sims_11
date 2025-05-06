@@ -38,21 +38,21 @@
             <span class="menu-header-text">Managemen Surat</span>
         </li>
         {{-- @endif --}}
-        @if ($role === 'ks' || $role === 'admin')
-            <li class="menu-item {{ is_active_url(['surat-masuk', 'surat-masuk/*']) }}">
-                <a href="{{ route('surat-masuk.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-envelope"></i>
-                    <div class="text-truncate">Surat Masuk</div>
-                    @if ($role === 'ks')
-                        @if ($unreadData > 0)
-                            {{-- <span class="badge"></span> --}}
-                            <span class="badge rounded-pill bg-danger ms-auto">{{ $unreadData }}</span>
-                        @endif
+        {{-- @if ($role === 'ks' || $role === 'admin') --}}
+        <li class="menu-item {{ is_active_url(['surat-masuk', 'surat-masuk/*']) }}">
+            <a href="{{ route('surat-masuk.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-envelope"></i>
+                <div class="text-truncate">Surat Masuk</div>
+                @if ($role === 'ks')
+                    @if ($unreadData > 0)
+                        {{-- <span class="badge"></span> --}}
+                        <span class="badge rounded-pill bg-danger ms-auto">{{ $unreadData }}</span>
                     @endif
-                    <!-- <div class="badge rounded-pill bg-label-primary text-uppercase fs-tiny ms-auto">Pro</div> -->
-                </a>
-            </li>
-        @endif
+                @endif
+                <!-- <div class="badge rounded-pill bg-label-primary text-uppercase fs-tiny ms-auto">Pro</div> -->
+            </a>
+        </li>
+        {{-- @endif --}}
         @if ($role !== 'admin')
             <li class="menu-item">
                 <a href="{{ route('disposisi.index') }}" class="menu-link">
@@ -69,7 +69,7 @@
                 </a>
             </li>
         @endif
-        <li class="menu-item">
+        <li class="menu-item {{ is_active_url(['surat-keluar', 'surat-keluar/*']) }}">
             <a href="{{ route('surat-keluar.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-mail-send"></i>
                 <div class="text-truncate">Surat Keluar</div>

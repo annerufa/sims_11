@@ -26,6 +26,7 @@ class SuratKeluar extends Model
         'catatan_revisi',
         'tanggal_srt',
         'perihal',
+        'is_read',
     ];
 
     public function instansi()

@@ -37,15 +37,15 @@
                 </div>
 
                 <div class="col-md-12 form-control-validation fv-plugins-icon-container">
-                    <label class="form-label" for="tujuan">Pilih Pengirim Surat:</label>
-                    <select id="tujuan" name="tujuan" class="form-select">
+                    <label class="form-label" for="pengirim">Pilih Pengirim Surat:</label>
+                    <select id="pengirim" name="pengirim" class="form-select">
                         <option disabled selected value="">Pilih Salah Satu</option>
                         <option value="new">+ Tambah Data Pengirim Baru</option>
                         @foreach ($listInstansi as $instansi)
                             <option value="{{ $instansi->id_instansi }}"
-                                {{ old('tujuan', $data->tujuan ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
+                                {{ old('pengirim', $data->id_pengirim ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
                                 ({{ $instansi->nama_pengirim }})
-                                <br>{{ $instansi->jabatan_pengirim }} -
+                                | {{ $instansi->jabatan_pengirim }} -
                                 {{ $instansi->nama_instansi }}
                             </option>
                         @endforeach
@@ -58,19 +58,19 @@
                             name="nama_instansi" value="{{ old('nama_instansi', $data->instansi->nama_instansi ?? '') }}">
                     </div>
                     <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="nama_pengirim">Nama Tujuan</label>
-                        <input type="text" id="nama_pengirim" class="form-control" placeholder="Nama Tujuan"
+                        <label class="form-label" for="nama_pengirim">Nama Pengirim</label>
+                        <input type="text" id="nama_pengirim" class="form-control" placeholder="Nama Pengirim"
                             name="nama_pengirim" value="{{ old('nama_pengirim', $data->instansi->nama_pengirim ?? '') }}">
                     </div>
                     <div class="col-md-4 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="jabatan_pengirim">Jabatan Tujuan</label>
+                        <label class="form-label" for="jabatan_pengirim">Jabatan Pengirim</label>
                         <input class="form-control" type="text" id="jabatan_pengirim" name="jabatan_pengirim"
-                            placeholder="Jabatan Tujuan"
+                            placeholder="Jabatan Pengirim"
                             value="{{ old('jabatan_pengirim', $data->instansi->jabatan_pengirim ?? '') }}">
                     </div>
 
                     <div class="col-md-12 form-control-validation fv-plugins-icon-container">
-                        <label class="form-label" for="alamat">Alamat Tujuan</label>
+                        <label class="form-label" for="alamat">Alamat Pengirim</label>
                         <textarea class="form-control" name="alamat" id="alamat" cols="30" rows="2"
                             placeholder="Masukkan alamat di sini ....">{{ old('alamat', $data->instansi->alamat ?? '') }}</textarea>
                     </div>
@@ -141,7 +141,7 @@
                         <option>Pilih Salah Satu</option>
                         @foreach ($agenda as $agenda)
                             <option value="{{ $agenda->id_agenda }}"
-                                {{ old('agenda', $data->agenda ?? '') == $agenda->id_agenda ? 'selected' : '' }}>
+                                {{ old('agenda', $data->agenda_id ?? '') == $agenda->id_agenda ? 'selected' : '' }}>
                                 {{ $agenda->nama_bagian }}
                             </option>
                             {{-- <option value="{{ $agenda->id_agenda }}">{{ $agenda->nama_bagian }}</option> --}}
@@ -165,10 +165,12 @@
                         <p>File saat ini:</p>
 
                         <!-- Atau untuk menampilkan langsung di iframe -->
-                        <iframe src="{{ Storage::url($data->file) }}" width="100%" height="600px"
+                        {{-- <iframe src="{{ Storage::url($data->file) }}" width="100%" height="600px"
                             style="border: none;">
+                        </iframe> --}}
+                        <iframe src="{{ asset($data->file) }}" width="100%" height="600px" style="border: none;">
                         </iframe>
-                        <a href="{{ Storage::url($data->file) }}">Download file</a>
+                        {{-- <a href="{{ Storage::url($data->file) }}">Download file</a> --}}
                     </div>
                 @endif
 
@@ -204,9 +206,9 @@
         });
     </script>
     <script>
-        $('#tujuan').on('change', function() {
+        $('#pengirim').on('change', function() {
 
-            const select = document.getElementById('tujuan');
+            const select = document.getElementById('pengirim');
             const formBaru = document.getElementById('form-tujuan-baru');
             if (select.value === 'new') {
                 // Tampilkan form baru

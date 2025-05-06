@@ -40,36 +40,38 @@
                 </thead>
                 {{-- {{ $item->penerima->first()->pivot->status_baca }} --}}
                 <tbody id="tabel-agenda">
-                    @foreach ($disposisi as $item)
+                    @foreach ($disposisi as $key => $item)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tanggal_disposisi)->format('d/m/Y') }}
-                                @if (!$item->penerima->first()->pivot->status_tugas)
-                                    <span class="badge bg-label-danger">Baru</span>
-                                    {{-- <span class="badge bg-danger">Baru</span> --}}
+                            <td>{{ \Carbon\Carbon::parse($item['tanggal_disposisi'])->format('d/m/Y') }}</td>
+                            <td class="wrap-text">
+
+                                @if (!empty($item['perintah']))
+                                    {{ $item['perintah'] }}
                                 @endif
                             </td>
-                            <td class="wrap-text">{{ $item->perintah }}</td>
-                            <td class="wrap-text">{{ $item->suratMasuk->perihal }}</td>
+                            {{-- <td>{{ \Carbon\Carbon::parse($item['surat_masuk']->tanggal_surat)->format('d/m/Y') }}</td> --}}
+                            {{-- <td>{{  }}</td> --}}
+                            {{-- <td class="wrap-text">{{ $item['catatan'] }}</td> --}}
+                            <td class="wrap-text">{{ $item['surat_masuk']->perihal }}</td>
                             <td>
-                                @php
-                                    $status = strtolower($item->penerima->first()->pivot->status_tugas);
-                                    $badgeClass = match ($status) {
-                                        'belum' => 'bg-label-primary',
-                                        'ditolak' => 'bg-label-danger',
-                                        'final' => 'bg-label-success',
-                                        'valid' => 'bg-label-warning',
-                                        default => 'bg-label-secondary',
-                                    };
-                                @endphp
-                                <span class="badge {{ $badgeClass }}">
-                                    {{ ucfirst($status) }}
-                                </span>
+                                @foreach ($item['penerimas'] as $penerima)
+                                    <p>{{ $penerima['nama'] }}
+                                        @if ($penerima['status_tugas'])
+                                            <span class="badge badge-success">Sudah Ditindak lanjut</span>
+                                        @else
+                                            <span class="badge badge-warning">Belum Ditindak lanjut</span>
+                                        @endif
+                                    </p>
+                                @endforeach
+
                             </td>
-                            {{-- <td>{{ $item->status_validasi }}</td> --}}
                             <td>
-                                <a href="{{ route('surat-keluar.show', $item->id_sk) }}" class="btn btn-info btn-sm">
-                                    Aksi
+                                <a href="{{ route('detailWaka', $item['id_disposisi']) }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-eye"></i> Ubah
+                                </a>
+                                <a href="{{ route('detailWaka', $item['id_disposisi']) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Detail
                                 </a>
                             </td>
                         </tr>

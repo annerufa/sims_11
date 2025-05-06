@@ -30,6 +30,11 @@ class Disposisi extends Model
         return $this->belongsToMany(User::class, 'disposisi_penerima', 'disposisi_id', 'user_id')
             ->withPivot(['status_tugas', 'catatan_balasan', 'created_at', 'updated_at']);
     }
+    //     public function disposisiPenerima()
+    // {
+    //     return $this->hasMany(DisposisiPenerima::class, 'disposisi_id');
+    // }
+
     // Relasi ke surat masuk
     // public function suratMasuk()
     // {

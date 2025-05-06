@@ -26,6 +26,12 @@ Route::get('/', function () {
 Route::get('validasi-surat', [SuratKeluarController::class, 'validasiShow'])->name('validasi-surat');
 Route::get('/setujui/{id}', [SuratKeluarController::class, 'setujui'])->name('setujui');
 Route::post('/revisi', [SuratKeluarController::class, 'revisi'])->name('revisi');
+Route::post('uploadArsip/{id}', [SuratKeluarController::class, 'uploadArsip'])->name('uploadArsip');
+Route::post('revisiDone/{suratKeluar}', [SuratKeluarController::class, 'revisiDone'])->name('revisiDone');
+Route::get('/disDone/{id}', [DisposisiController::class, 'disDone'])->name('disDone');
+Route::get('/detailWaka/{id}', [DisposisiController::class, 'detailWaka'])->name('detailWaka');
+Route::get('/arsipSk/{id}', [SuratKeluarController::class, 'arsipSk'])->name('arsipSk');
+// Route::get('/detailWaka/{id}', [DisposisiController::class, 'detailWaka'])->name('detailWaka');
 
 // login & logout
 Route::get('login', [AuthController::class, 'login'])->name('login');

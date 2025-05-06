@@ -20,17 +20,9 @@
                     {{ session('error') }}
                 </div>
             @endif
-            <form method="POST"
-                action="{{ isset($data) ? route('surat-keluar.update', $data->id_sk) : route('surat-keluar.store') }}"
-                enctype="multipart/form-data" id="formSuratMasuk" class="row g-6 fv-plugins-bootstrap5 fv-plugins-framework">
+            <form method="POST" action="{{ route('revisiDone', $data->id_sk) }}" enctype="multipart/form-data"
+                id="formSuratMasuk" class="row g-6 fv-plugins-bootstrap5 fv-plugins-framework">
                 @csrf
-                @if (isset($data))
-                    @method('PUT')
-                @endif
-                {{-- <form action="{{ route('surat-masuk.store') }}" method="POST"novalidate="novalidate">
-                @csrf --}}
-                <!-- Account Details -->
-
                 <div class="col-12">
                     <h6>1. Tujuan Surat</h6>
                     <hr class="mt-0">

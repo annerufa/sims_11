@@ -4,7 +4,7 @@
         .wrap-text {
             white-space: normal;
             word-wrap: break-word;
-            max-width: 300px;
+            max-width: 350px;
         }
     </style>
 @endpush
@@ -32,7 +32,8 @@
                         <th>No</th>
                         <th>Tgl Disposisi</th>
                         <th>Perintah</th>
-                        {{-- <th>Perihal</th> --}}
+                        <th>Catatan</th>
+                        <th>Perihal</th>
                         <th>Status</th>
                         {{-- <th>Nomor Surat</th> --}}
                         <th>Aksi</th>
@@ -43,20 +44,26 @@
                     @foreach ($disposisi as $key => $item)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item['tanggal_disposisi'])->format('d/m/Y H:i') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($item['tanggal_disposisi'])->format('d/m/Y') }}</td>
+                            <td class="wrap-text">
 
+                                @if (!empty($item['perintah']))
+                                    {{ $item['perintah'] }}
+                                @endif
+                            </td>
                             {{-- <td>{{ \Carbon\Carbon::parse($item['surat_masuk']->tanggal_surat)->format('d/m/Y') }}</td> --}}
-                            <td>{{ $item['perintah'] }}</td>
-                            {{-- <td class="wrap-text">{{ $item['surat_masuk']->perihal }}</td> --}}
+                            {{-- <td>{{  }}</td> --}}
+                            <td class="wrap-text">{{ $item['catatan'] }}</td>
+                            <td class="wrap-text">{{ $item['surat_masuk']->perihal }}</td>
                             <td>
                                 @if ($item['status_tugas'])
-                                    <span class="badge badge-success">Sudah Dibaca</span>
+                                    <span class="badge badge-success">Sudah Ditindak lanjut</span>
                                 @else
-                                    <span class="badge badge-warning">Belum Dibaca</span>
+                                    <span class="badge badge-warning">Belum Ditindak lanjut</span>
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('disposisi.show', $item['id_disposisi']) }}" class="btn btn-sm btn-info">
+                                <a href="{{ route('detailWaka', $item['id_disposisi']) }}" class="btn btn-sm btn-info">
                                     <i class="fas fa-eye"></i> Detail
                                 </a>
                             </td>

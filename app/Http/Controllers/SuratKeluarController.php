@@ -10,7 +10,7 @@ use App\Models\Disposisi;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 class SuratKeluarController extends Controller
@@ -20,7 +20,14 @@ class SuratKeluarController extends Controller
      */
     public function index()
     {
+        $jabatan =  Auth::user()->jabatan;
+        $userId = Auth::user()->id;
+        // if ($jabatan !== 'admin' || $jabatan !== 'ks') {
+        //     $suratKeluars = SuratKeluar::where('status_validasi', ['final', 'disetujui'])->with('instansi')->latest()->get(); // 'instansi' nanti kita buat relasinya
+        // } else {
         $suratKeluars = SuratKeluar::with('instansi')->latest()->get(); // 'instansi' nanti kita buat relasinya
+
+        // }
         return view('surat-keluar.index', compact('suratKeluars'));
     }
     public function validasiShow()
@@ -80,12 +87,6 @@ class SuratKeluarController extends Controller
 
             // Jika belum ada, buat baru
             if (!$instansi) {
-                // $input = $request->jabatan_pengirim;
-
-                // preg_match('/^(.*?)\s*\((.*?)\)$/', $input, $matches);
-
-                // $a = $matches[1] ?? $input; // "Kepala Sekolah"
-                // $b = $matches[2] ?? null; // "2024-2029"
 
                 $instansi = Instansi::create([
                     'nama_instansi' => strtoupper($request->nama_instansi),
@@ -100,12 +101,15 @@ class SuratKeluarController extends Controller
 
             if ($request->hasFile('file_draft')) {
                 $filename = 'surat-' . time() . '.' . $request->file('file_draft')->getClientOriginalExtension();
-                $validated['file_draft'] = $request->file('file_draft')->storeAs('surat-keluar', $filename, 'public');
+                // Simpan ke public/surat-masuk
+                $request->file('file_draft')->move(public_path('suratKeluar'), $filename);
+                // Simpan path relatif ke database 
+                $validated['file_draft'] = 'suratKeluar/' . $filename;
             }
 
             // Gunakan id_instansi untuk input ke surat_masuk
             $validated['tujuan'] = $instansi->id_instansi;
-            $validated['status_validasi'] = 'belum';
+            $validated['status_validasi'] = 'draft';
             // $validated['status_draft'] = false;
             $validated['user_id'] = Auth::user()->id;
 
@@ -142,6 +146,12 @@ class SuratKeluarController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
+    public function arsipSk(string $id)
+    {
+        $data = SuratKeluar::where('id_sk', $id)->with(['instansi', 'agenda', 'validator'])->first();
+        return view('surat-keluar.arsip', compact('data'));
+    }
+
     public function edit(string $id)
     {
         $users = User::whereNotIn('jabatan', ['ks', 'admin'])->get();
@@ -156,19 +166,28 @@ class SuratKeluarController extends Controller
             'Surat Pemberitahuan',
             'Surat Lamaran',
         ];
-        // $unreadData = SuratKeluar::where('is_read', false)->count();
-        // $users = User::all();
+
         $dataSurat = SuratKeluar::where('id_sk', $id)->with(['instansi', 'agenda', 'validator'])->first();
-        // $disposisi = Disposisi::where('surat_masuk_id', $id)->with(['penerimas.user'])->get();
-        // $dataSurat->is_read = true;
-        // return view('surat-masuk.detail', compact('dataSurat', 'users', 'unreadData', 'disposisi'));
-        return view('surat-keluar.create', [
-            'data' => $dataSurat,
-            'listInstansi' => $listInstansi,
-            'validator' => $users,
-            'agenda' => $agenda,
-            'jenisSuratOptions' => $jenisSuratOptions,
-        ]);
+
+        if ($dataSurat->status_validasi === 'direvisi') {
+            $status_revisi = 1;
+            return view('surat-keluar.revisi', [
+                'data' => $dataSurat,
+                'listInstansi' => $listInstansi,
+                'validator' => $users,
+                'agenda' => $agenda,
+                'jenisSuratOptions' => $jenisSuratOptions,
+                'status_revisi' => $status_revisi,
+            ]);
+        } else {
+            return view('surat-keluar.create', [
+                'data' => $dataSurat,
+                'listInstansi' => $listInstansi,
+                'validator' => $users,
+                'agenda' => $agenda,
+                'jenisSuratOptions' => $jenisSuratOptions,
+            ]);
+        }
     }
 
     /**
@@ -176,58 +195,132 @@ class SuratKeluarController extends Controller
      */
     public function update(Request $request, SuratKeluar $suratKeluar)
     {
-        $validated = $request->validate([
-            'jenis_srt' => 'required',
-            'pengaju' => 'required',
-            'validator_id' => 'required',
-            'agenda_id' => 'required',
-            'perihal' => 'required',
-        ]);
-
-        // Cari instansi berdasarkan nama
-        $instansi = Instansi::where('id_instansi', $request->tujuan)->first();
-        if (!$instansi) {
-            $instansi = Instansi::create([
-                'nama_instansi' => strtoupper($request->nama_instansi),
-                'nama_pengirim' =>  ucwords(strtolower($request->nama_pengirim)),
-                'jabatan_pengirim' => $request->jabatan_pengirim,
-                // 'jabatan_pengirim' => $a,
-                // 'periode_pengirim' => $b,
-                'alamat_pengirim' => $request->alamat_pengirim,
+        try {
+            $validated = $request->validate([
+                'jenis_srt' => 'required',
+                'pengaju' => 'required',
+                'validator_id' => 'required',
+                'agenda_id' => 'required',
+                'perihal' => 'required',
             ]);
-        }
 
-        // Gunakan id_instansi untuk input ke surat_masuk
-        $validated['tujuan'] = $instansi->id_instansi;
-
-
-        // jika ada file diupload lagi
-        if ($request->hasFile('file_draft')) {
-            // Hapus file lama jika ada
-            if ($suratKeluar->file_draft) {
-                Storage::delete($suratKeluar->file_draft);
+            // Cari instansi berdasarkan nama
+            $instansi = Instansi::where('id_instansi', $request->tujuan)->first();
+            if (!$instansi) {
+                $instansi = Instansi::create([
+                    'nama_instansi' => strtoupper($request->nama_instansi),
+                    'nama_pengirim' =>  ucwords(strtolower($request->nama_pengirim)),
+                    'jabatan_pengirim' => $request->jabatan_pengirim,
+                    // 'jabatan_pengirim' => $a,
+                    // 'periode_pengirim' => $b,
+                    'alamat_pengirim' => $request->alamat_pengirim,
+                ]);
             }
-            $validated['file_draft'] = $request->file('file_draft')->store('surat-keluar');
+
+            // Gunakan id_instansi untuk input ke surat_masuk
+            $validated['tujuan'] = $instansi->id_instansi;
+
+
+            if ($request->hasFile('file_draft')) {
+                $filename = 'surat-' . time() . '.' . $request->file('file_draft')->getClientOriginalExtension();
+                // Simpan ke public/surat-masuk
+                $request->file('file_draft')->move(public_path('suratKeluar'), $filename);
+                // Simpan path relatif ke database 
+                $validated['file_draft'] = 'suratKeluar/' . $filename;
+            }
+            $suratKeluar->update($validated);
+
+            return redirect()->route('surat-keluar.index')
+                ->with('success', 'Surat keluar berhasil diperbarui');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Gagal menyimpan surat masuk: ' . $e->getMessage());
         }
+    }
+    public function revisiDone(Request $request, $id)
+    {
+        dd("Revisi Done for ID: " . $id); // Debug test
+        // try {
+        //     $validated = $request->validate([
+        //         'jenis_srt' => 'required',
+        //         'pengaju' => 'required',
+        //         'validator_id' => 'required',
+        //         'agenda_id' => 'required',
+        //         'perihal' => 'required',
+        //     ]);
+
+        //     // Cari instansi berdasarkan nama
+        //     $instansi = Instansi::where('id_instansi', $request->tujuan)->first();
+        //     if (!$instansi) {
+        //         $instansi = Instansi::create([
+        //             'nama_instansi' => strtoupper($request->nama_instansi),
+        //             'nama_pengirim' =>  ucwords(strtolower($request->nama_pengirim)),
+        //             'jabatan_pengirim' => $request->jabatan_pengirim,
+        //             // 'jabatan_pengirim' => $a,
+        //             // 'periode_pengirim' => $b,
+        //             'alamat_pengirim' => $request->alamat_pengirim,
+        //         ]);
+        //     }
+
+        //     // Gunakan id_instansi untuk input ke surat_masuk
+        //     $validated['tujuan'] = $instansi->id_instansi;
+
+        //     $validated['status_validasi'] = 'telah direvisi';
+        //     // $validated['status_validasi'] = 'telah direvisi';
 
 
-        if ($request->hasFile('file_draft')) {
-            $filename = 'surat-' . time() . '.' . $request->file('file_draft')->getClientOriginalExtension();
-            $validated['file_draft'] = $request->file('file_draft')->storeAs('surat-keluar', $filename, 'public');
-        }
-
-        $suratKeluar->update($validated);
-
-        return redirect()->route('surat-keluar.index')
-            ->with('success', 'Surat keluar berhasil diperbarui');
+        //     if ($request->hasFile('file_draft')) {
+        //         $filename = 'surat-' . time() . '.' . $request->file('file_draft')->getClientOriginalExtension();
+        //         // Simpan ke public/surat-masuk
+        //         $request->file('file_draft')->move(public_path('suratKeluar'), $filename);
+        //         // Simpan path relatif ke database 
+        //         $validated['file_draft'] = 'suratKeluar/' . $filename;
+        //     }
+        //     $suratKeluar->update($validated);
+        //     echo ($suratKeluar);
+        //     // return redirect()->route('surat-keluar.index')
+        //     //     ->with('success', 'Surat keluar berhasil diperbarui');
+        // } catch (\Exception $e) {
+        //     return back()->withInput()->with('error', 'Gagal menyimpan surat masuk: ' . $e->getMessage());
+        // }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(suratKeluar $suratKeluar)
     {
-        //
+
+        if ($suratKeluar->file_draft && File::exists(public_path($suratKeluar->file_draft))) {
+            File::delete(public_path($suratKeluar->file_draft));
+        }
+
+        $suratKeluar->delete();
+
+        return redirect()->route('surat-keluar.index')
+            ->with('success', 'Surat keluar berhasil dihapus');
+    }
+    public function uploadArsip(Request $request, $id)
+    {
+        try {
+            $url_file_fiks = '';
+            if ($request->hasFile('file_fiks')) {
+                $filename = 'surat-' . time() . '.' . $request->file('file_fiks')->getClientOriginalExtension();
+                // Simpan ke public/surat-masuk
+                $request->file('file_fiks')->move(public_path('suratKeluar'), $filename);
+                // Simpan path relatif ke database 
+                $url_file_fiks = 'suratKeluar/' . $filename;
+            }
+
+            SuratKeluar::where('id_sk', $id)->update([
+                'file_fiks' => $url_file_fiks,
+                'status_validasi' => 'final'
+            ]);
+
+            return redirect()->route('surat-keluar.index')
+                ->with('success', 'Surat keluar berhasil diarsipkan');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Gagal mengarsipkan surat keluar: ' . $e->getMessage());
+        }
     }
     public function setujui($id)
     {

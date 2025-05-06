@@ -59,25 +59,25 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="kolom1">Nomor Surat</td>
+                            <td class="kolom1">Status Surat</td>
                             <td>:
-                                @if ($dataSurat->status_validasi === 'final')
+                                {{-- @if ($dataSurat->status_validasi === 'final')
                                     {{ $dataSurat->nomor_srt }}
-                                @else
-                                    @php
-                                        $sifat = strtolower($dataSurat->status_validasi);
-                                        $badgeClass = match ($sifat) {
-                                            'belum' => 'bg-label-primary',
-                                            'ditolak' => 'bg-label-danger',
-                                            'final' => 'bg-label-success',
-                                            'valid' => 'bg-label-warning',
-                                            default => 'bg-label-secondary',
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $badgeClass }}">
-                                        {{ ucfirst($sifat) }}
-                                    </span>
-                                @endif
+                                @else --}}
+                                @php
+                                    $sifat = strtolower($dataSurat->status_validasi);
+                                    $badgeClass = match ($sifat) {
+                                        'belum' => 'bg-label-primary',
+                                        'ditolak' => 'bg-label-danger',
+                                        'final' => 'bg-label-success',
+                                        'valid' => 'bg-label-warning',
+                                        default => 'bg-label-secondary',
+                                    };
+                                @endphp
+                                <span class="badge {{ $badgeClass }}">
+                                    {{ ucfirst($sifat) }}
+                                </span>
+                                {{-- @endif --}}
 
                             </td>
                             <td class="kolom1">Tanggal Surat</td>
@@ -86,8 +86,10 @@
                         <tr>
                             <td class="kolom1">Validator</td>
                             <td>:{{ $dataSurat->validator->nama }}</td>
-                            <td class="kolom1">No Agenda</td>
-                            <td>:{{ $dataSurat->nomor_urut }}/{{ $dataSurat->agenda->nama_bagian }}</td>
+                            <td class="kolom1">No Surat</td>
+                            <td>: {{ $dataSurat->agenda->kode_bagian }} / {{ $dataSurat->nomor_urut }} / 101.6.11.13 /
+                                {{ \Carbon\Carbon::parse($dataSurat->tanggal_srt)->format('Y') }}
+                            </td>
                         </tr>
                         <tr>
                             <td class="kolom1">Perihal</td>
@@ -108,11 +110,12 @@
             <div class="col-12">
                 <hr class="mb-2 mt-3">
                 <p>File surat:</p>
-
-                <!-- Atau untuk menampilkan langsung di iframe -->
-                {{-- <iframe src="{{ Storage::url($dataSurat->file_draft) }}" width="100%" height="600px"
-                    style="border: none;"> --}}
-                <iframe src="{{ asset($dataSurat->file_draft) }}" width="100%" height="600px" style="border: none;">
+                @if ($dataSurat->status_validasi !== 'final')
+                    <iframe src="{{ asset($dataSurat->file_draft) }}" width="100%" height="600px" style="border: none;">
+                    @else
+                        <iframe src="{{ asset($dataSurat->file_fiks) }}" width="100%" height="600px"
+                            style="border: none;">
+                @endif
 
                 </iframe>
             </div>

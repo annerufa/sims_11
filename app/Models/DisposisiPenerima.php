@@ -20,4 +20,13 @@ class DisposisiPenerima extends Pivot
         'status_baca',
         'catatan_balasan'
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function disposisi()
+    {
+        return $this->belongsTo(Disposisi::class);
+    }
 }
