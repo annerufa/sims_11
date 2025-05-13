@@ -13,7 +13,7 @@
                                     <span class="avatar-initial rounded bg-label-primary"><i
                                             class="icon-base bx bxs-envelope icon-lg"></i></span>
                                 </div>
-                                <h4 class="mb-0">12</h4>
+                                <h4 class="mb-0">{{ $sm }}</h4>
                             </div>
                             <p class="mb-2">Surat Masuk</p>
                             {{-- <p class="mb-0">
@@ -31,7 +31,7 @@
                                     <span class="avatar-initial rounded bg-label-warning"><i
                                             class="icon-base bx bx-receipt icon-lg"></i></span>
                                 </div>
-                                <h4 class="mb-0">8</h4>
+                                <h4 class="mb-0">{{ $draft }}</h4>
                             </div>
                             <p class="mb-2">Pengajuan Surat</p>
                             {{-- <p class="mb-0">
@@ -49,7 +49,7 @@
                                     <span class="avatar-initial rounded bg-label-danger"><i
                                             class="icon-base bx bx-mail-send icon-lg"></i></span>
                                 </div>
-                                <h4 class="mb-0">17</h4>
+                                <h4 class="mb-0">{{ $sk }}</h4>
                             </div>
                             <p class="mb-2">Surat Keluar</p>
                             {{-- <p class="mb-0">

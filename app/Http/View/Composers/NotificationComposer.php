@@ -25,8 +25,11 @@ class NotificationComposer
             ]);
         } else {
             $view->with([
-                'draftSurat'   => SuratKeluar::where('status_validasi', 'belum')->count(),
-                'unreadData'  => DisposisiPenerima::where('user_id',  Auth::user()->id)->count(),
+                'disBaru' =>  DisposisiPenerima::where('user_id',  Auth::user()->id)
+                    ->where('is_read', 0)->count(),
+                'draftSurat'   => SuratKeluar::where('validator_id', Auth::user()->id)
+                    ->whereNotIn('status_validasi', ['final', 'disetujui'])
+                    ->where('is_read', 0)->count(),
             ]);
         }
     }

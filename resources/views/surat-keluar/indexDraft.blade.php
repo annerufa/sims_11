@@ -77,7 +77,7 @@
                             </td>
                             {{-- <td>{{ $item->status_validasi }}</td> --}}
                             <td>
-                                <a href="{{ route('surat-keluar.show', $item->id_sk) }}" class="btn btn-info btn-sm">
+                                <a href="{{ route('detail.validasi', $item->id_sk) }}" class="btn btn-info btn-sm">
                                     Aksi
                                 </a>
                             </td>

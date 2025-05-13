@@ -29,7 +29,6 @@ class SuratMasukController extends Controller
                     $query->where('users.id', $userId);
                 })->get();
         }
-
         return view('surat-masuk.index', compact('suratMasuk'));
     }
 
@@ -45,6 +44,7 @@ class SuratMasukController extends Controller
             'Surat Izin',
             'Surat Pemberitahuan',
             'Surat Lamaran',
+            'Lainnya',
         ];
         return view('surat-masuk.create', [
             'data' => null,

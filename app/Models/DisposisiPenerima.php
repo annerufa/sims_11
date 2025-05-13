@@ -17,8 +17,9 @@ class DisposisiPenerima extends Pivot
     protected $fillable = [
         'disposisi_id',
         'user_id',
-        'status_baca',
-        'catatan_balasan'
+        'status_tugas',
+        'catatan_balasan',
+        'is_read',
     ];
     public function user()
     {

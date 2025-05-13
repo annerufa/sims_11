@@ -8,20 +8,34 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\SuratMasuk;
+use App\Models\SuratKeluar;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
     public function home()
     {
+        $sm = SuratMasuk::whereMonth('tanggal_terima', Carbon::now()->month)
+            ->whereYear('tanggal_terima', Carbon::now()->year)
+            ->count();
+        $draft =  SuratKeluar::where('status_validasi', 'draft')
+            ->whereMonth('tanggal_srt', Carbon::now()->month)
+            ->whereYear('tanggal_srt', Carbon::now()->year)
+            ->count();
+        $sk = SuratKeluar::whereNot('status_validasi', 'draft')
+            ->whereMonth('tanggal_srt', Carbon::now()->month)
+            ->whereYear('tanggal_srt', Carbon::now()->year)
+            ->count();
+
+
         if (Auth::user()) {
-            $jabatan = Auth::user()->jabatan;
+            // $jabatan = Auth::user()->jabatan;
 
-
-            if ($jabatan === 'ks') {
-                $unreadData = SuratMasuk::where('is_read', false)->count();
-                return view('home', compact('unreadData'));
-            }
-            return view('home');
+            // if ($jabatan === 'ks') {
+            //     // $unreadData = SuratMasuk::where('is_read', false)->count();
+            //     return view('home', compact('unreadData'));
+            // }
+            return view('home', compact('sm', 'draft', 'sk'));
         }
         return redirect('/');
     }
@@ -37,11 +51,10 @@ class AuthController extends Controller
         if (Auth::attempt($request->only('no_pegawai', 'password'))) {
             $request->session()->regenerate();
             session(['jabatan' => Auth::user()->jabatan]);
-            // Simpan di session saat login
-
+            session(['nama' => Auth::user()->nama]);
             return redirect('/dashboard');
         }
-        return back()->withErrors(['email' => 'Invalid credentials']);
+        return back()->withErrors(['dataLogin' => 'no pegawai atau password salah']);
     }
 
     public function logout(Request $request)

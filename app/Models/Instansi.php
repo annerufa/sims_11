@@ -40,8 +40,8 @@ class Instansi extends Model
     protected $fillable = [
         'id_instansi',
         'nama_instansi',
-        'nama_pengirim',
-        'jabatan_pengirim',
+        // 'nama_pengirim',
+        // 'jabatan_pengirim',
         'periode_pengirim',
     ];
 

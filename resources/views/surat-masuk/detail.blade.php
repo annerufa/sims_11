@@ -34,8 +34,8 @@
                     <thead>
                         <tr>
                             <td class="kolom1">Identitas Pengirim</td>
-                            <td>: {{ $dataSurat->instansi->nama_pengirim }}</td>
-                            <td colspan="2"> {{ $dataSurat->instansi->jabatan_pengirim }} -
+                            {{-- <td>: {{ $dataSurat->instansi->nama_pengirim }}</td> --}}
+                            <td colspan="3">: {{ $dataSurat->instansi->jabatan_pengirim }} -
                                 {{ $dataSurat->instansi->nama_instansi }}
                             </td>
 
@@ -71,7 +71,7 @@
                         </tr>
                         <tr>
                             <td class="kolom1">No Agenda</td>
-                            <td>:{{ $dataSurat->nomor_urut }}/{{ $dataSurat->agenda->nama_bagian }}</td>
+                            <td>: {{ $dataSurat->nomor_urut }}/{{ $dataSurat->agenda->nama_bagian }}</td>
                             <td class="kolom1">Nomor Surat</td>
                             <td>: {{ $dataSurat->nomor_srt }}</td>
                         </tr>
@@ -113,9 +113,9 @@
                     <thead>
                         <tr style="font-weight: bold;">
                             <td>Diteruskan kepada</td>
+                            <td>Status</td>
                             <td>Dengan hormat harap</td>
-                            <td>catatan</td>
-                            <td>status</td>
+                            <td>Catatan</td>
                         </tr>
                     </thead>
                     <tbody id="tabel-agenda">
@@ -125,28 +125,11 @@
                                 <!-- Diteruskan kepada -->
                                 <td>
                                     @foreach ($disposisiItem->penerimas as $penerima)
-                                        <span class="penerima {{ $loop->iteration % 2 == 0 ? 'even' : 'odd' }}">
+                                        <p class="penerima {{ $loop->iteration % 2 == 0 ? 'even' : 'odd' }}">
                                             {{ $penerima->nama }}
-                                        </span>
-                                        @if (!$loop->last)
-                                            ,
-                                        @endif
+                                        </p>
                                     @endforeach
                                 </td>
-
-                                <!-- Dengan hormat harap -->
-                                @php
-                                    $perintahArray = explode(', ', $disposisiItem->perintah);
-                                @endphp
-
-                                <td>
-                                    @foreach ($perintahArray as $item)
-                                        <span>{{ $item }}</span><br>
-                                    @endforeach
-                                </td>
-
-                                <!-- Catatan -->
-                                <td>{{ $disposisiItem->catatan }}</td>
 
                                 <!-- Status -->
                                 <td>
@@ -154,17 +137,34 @@
                                     {{-- @if (auth()->user()->jabatan === 'ks' || auth()->user()->jabatan === 'admin') --}}
                                     @foreach ($disposisiItem->penerimas as $penerima)
                                         @if (!$penerima->pivot->status_tugas)
-                                            'belum ada tindak lanjut'
+                                            <p>'belum ada tindak lanjut'</p>
                                             @php
                                                 if ($penerima->id == auth()->id()) {
                                                     $tindak = true;
                                                 }
                                             @endphp
                                         @else
-                                            <span class="status"> 'telah ditindak lanjuti'</span>
+                                            <p class="status"> 'telah ditindak lanjuti'</p>
                                         @endif
                                     @endforeach
                                 </td>
+                                <!-- Dengan hormat harap -->
+                                @php
+                                    $perintahArray = explode(', ', $disposisiItem->perintah);
+                                @endphp
+
+                                <td>
+                                    @foreach ($perintahArray as $item)
+                                        <span>{{ $item }}</span>
+                                        @if (!$loop->last)
+                                            ,
+                                        @endif
+                                    @endforeach
+                                </td>
+
+                                <!-- Catatan -->
+                                <td>{{ $disposisiItem->catatan }}</td>
+
                             </tr>
                         @endforeach
 

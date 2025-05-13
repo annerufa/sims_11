@@ -24,6 +24,7 @@ Route::get('/', function () {
 });
 // register 
 Route::get('validasi-surat', [SuratKeluarController::class, 'validasiShow'])->name('validasi-surat');
+Route::get('detail.validasi/{id}', [SuratKeluarController::class, 'detailValidasi'])->name('detail.validasi');
 Route::get('/setujui/{id}', [SuratKeluarController::class, 'setujui'])->name('setujui');
 Route::post('/revisi', [SuratKeluarController::class, 'revisi'])->name('revisi');
 Route::post('uploadArsip/{id}', [SuratKeluarController::class, 'uploadArsip'])->name('uploadArsip');

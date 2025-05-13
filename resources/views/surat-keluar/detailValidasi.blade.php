@@ -109,10 +109,10 @@
                 </table>
             </div>
             <div class="col-12 mt-4">
-                @if ($dataSurat->status_validasi === 'direvisi')
-                    <div class="alert alert-primary alert-dismissible" role="alert">
+                @if ($isDraft)
+                    <div class="alert alert-warning alert-dismissible" role="alert">
                         <h5 class="alert-heading d-flex align-items-center flex-wrap gap-1 mb-1">Catatan Revisi</h5>
-                        <p class="mb-0">{{ $dataSurat->catatan_revisi }}</p>
+                        <p style="color: #4e5965" class="mb-0">{{ $dataSurat->catatan_revisi }}</p>
                         {{-- <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> --}}
                     </div>
                 @endif

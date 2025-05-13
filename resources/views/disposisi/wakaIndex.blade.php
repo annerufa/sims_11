@@ -57,9 +57,9 @@
                             <td class="wrap-text">{{ $item['surat_masuk']->perihal }}</td>
                             <td>
                                 @if ($item['status_tugas'])
-                                    <span class="badge badge-success">Sudah Ditindak lanjut</span>
+                                    <span class="badge bg-label-success">Telah Ditindak lanjut</span>
                                 @else
-                                    <span class="badge badge-warning">Belum Ditindak lanjut</span>
+                                    <span class="badge bg-label-warning">Belum Ditindak lanjut</span>
                                 @endif
                             </td>
                             <td>

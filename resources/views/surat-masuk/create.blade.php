@@ -44,25 +44,24 @@
                         @foreach ($listInstansi as $instansi)
                             <option value="{{ $instansi->id_instansi }}"
                                 {{ old('pengirim', $data->id_pengirim ?? '') == $instansi->id_instansi ? 'selected' : '' }}>
-                                ({{ $instansi->nama_pengirim }})
-                                | {{ $instansi->jabatan_pengirim }} -
+                                {{ $instansi->jabatan_pengirim }} -
                                 {{ $instansi->nama_instansi }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div id="form-tujuan-baru" class="hilang cc">
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    <div class="col-md-6 form-control-validation fv-plugins-icon-container">
                         <label class="form-label" for="nama_instansi">Nama Instansi</label>
                         <input type="text" id="nama_instansi" class="form-control" placeholder="Nama Instansi"
                             name="nama_instansi" value="{{ old('nama_instansi', $data->instansi->nama_instansi ?? '') }}">
                     </div>
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    {{-- <div class="col-md-4 form-control-validation fv-plugins-icon-container">
                         <label class="form-label" for="nama_pengirim">Nama Pengirim</label>
                         <input type="text" id="nama_pengirim" class="form-control" placeholder="Nama Pengirim"
                             name="nama_pengirim" value="{{ old('nama_pengirim', $data->instansi->nama_pengirim ?? '') }}">
-                    </div>
-                    <div class="col-md-4 form-control-validation fv-plugins-icon-container">
+                    </div> --}}
+                    <div class="col-md-6 form-control-validation fv-plugins-icon-container">
                         <label class="form-label" for="jabatan_pengirim">Jabatan Pengirim</label>
                         <input class="form-control" type="text" id="jabatan_pengirim" name="jabatan_pengirim"
                             placeholder="Jabatan Pengirim"
@@ -218,7 +217,7 @@
 
                 // Kosongkan input tersembunyi
                 document.getElementById('nama_instansi').value = '';
-                document.getElementById('nama_pengirim').value = '';
+                // document.getElementById('nama_pengirim').value = '';
                 document.getElementById('jabatan_pengirim').value = '';
                 document.getElementById('alamat').value = '';
             } else {

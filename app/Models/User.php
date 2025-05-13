@@ -23,6 +23,7 @@ class User extends Authenticatable
         'jabatan',
         'no_pegawai',
         'password',
+        'foto',
     ];
 
     /**

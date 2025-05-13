@@ -28,6 +28,7 @@ class DisposisiController extends Controller
                 ->map(function ($item) {
                     return [
                         'id_disposisi' => $item->id_disposisi,
+                        'surat_masuk_id' => $item->surat_masuk_id,
                         'surat_masuk' => $item->suratMasuk,
                         'perintah' => $item->perintah,
                         'catatan' => $item->catatan,
@@ -35,14 +36,15 @@ class DisposisiController extends Controller
                             return [
                                 'nama' => $penerima->nama,
                                 'status_tugas' => $penerima->pivot->status_tugas ?? null,
-                                'catatan_balasan' => $penerima->pivot->catatan_balasan ?? null
+                                'catatan_balasan' => $penerima->pivot->catatan_balasan ?? null,
+                                'is_read' => $penerima->pivot->is_read ?? null
                             ];
                         }),
                         'tanggal_disposisi' => $item->tanggal_disposisi
                     ];
                 });
-            // echo ($disposisi);
-            return view('disposisi.index', compact('disposisi'));
+            $users = User::all();
+            return view('disposisi.index', compact('disposisi', 'users'));
         } else {
             $userId = Auth::id();
             $disposisi = Disposisi::whereHas('penerimas', fn($q) => $q->where('user_id', $userId))
@@ -54,14 +56,11 @@ class DisposisiController extends Controller
                         'surat_masuk' => $item->suratMasuk,
                         'perintah' => $item->perintah,
                         'catatan' => $item->catatan,
-                        // 'perihal' => $item->catatan,
                         'status_tugas' => $item->penerimas->first()->pivot->status_tugas,
                         'catatan_balasan' => $item->penerimas->first()->pivot->catatan_balasan,
                         'tanggal_disposisi' => $item->tanggal_disposisi
                     ];
                 });
-
-            // dd($disposisi);
             return view('disposisi.wakaIndex', compact('disposisi'));
         }
     }
@@ -80,16 +79,18 @@ class DisposisiController extends Controller
         $userId = Auth::id();
         // Cari disposisi dengan eager loading penerimas
         // Ambil data disposisi dengan semua relasi
-        $disposisi = Disposisi::with([
-            'penerimas' => function ($query) {
-                $query->select('users.id', 'users.nama') // Sesuaikan kolom user yang dibutuhkan
-                    ->withPivot('status_tugas', 'catatan_balasan');
-            },
-            'suratMasuk.instansi',
-            'suratMasuk.agenda'
-        ])
-            ->where('id_disposisi', $id_dis)
-            ->firstOrFail();
+        DisposisiPenerima::where('disposisi_id', $id_dis)->where('user_id', $userId)->update([
+            'is_read' => 1,
+        ]);
+        $disposisi = Disposisi::where('id_disposisi', $id_dis)
+            ->with([
+                'penerimas' => function ($query) {
+                    $query->select('users.id', 'users.nama') // Sesuaikan kolom user yang dibutuhkan
+                        ->withPivot('status_tugas', 'catatan_balasan');
+                },
+                'suratMasuk.instansi',
+                'suratMasuk.agenda'
+            ])->first();
         // echo ($disposisi->suratMasuk);
         return view('disposisi.detailWk', compact('disposisi'));;
     }
@@ -100,18 +101,13 @@ class DisposisiController extends Controller
             DisposisiPenerima::where('disposisi_id', $id)->where('user_id', $penerimaId)->update([
                 'status_tugas' => 1,
             ]);
-            $d = DisposisiPenerima::where('disposisi_id', $id)->where('user_id', $penerimaId)->first();
-            echo ($d);
-            // return redirect()->route('disposisi.index')
-            //     ->with('success', 'Disposisi telah ditindak lanjuti');
+            return redirect()->route('disposisi.index')
+                ->with('success', 'Disposisi telah ditindak lanjuti');
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Gagal melakukan tindak lanjut ' . $e->getMessage());
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -158,36 +154,122 @@ class DisposisiController extends Controller
         // ]);
     }
 
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // public function show(string $id)
+    // {
+    //     //
+    // }
+    public function edit($id_dis)
     {
-        //
-    }
+        $disposisi = Disposisi::with([
+            'penerimas:id,nama,jabatan',
+            'suratMasuk.instansi',
+            'suratMasuk.agenda'
+        ])->findOrFail($id_dis);
+        $users = User::all();
+        // Pastikan perintah selalu array
+        $perintah = json_decode($disposisi->perintah, true) ?? [];
+        $perintah = is_array($perintah) ? $perintah : [$perintah];
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        return response()->json([
+            'disposisi' => $disposisi,
+            'penerima' => $disposisi->penerimas->pluck('id')->toArray(),
+            'perintah' => array_filter($perintah), // Hapus nilai kosong
+            'users' => $users
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
+        // $disposisi = Disposisi::where('id_disposisi', $id_dis)
+        //     ->with([
+        //         'penerimas' => function ($query) {
+        //             $query->select('users.id', 'users.nama') // Sesuaikan kolom user yang dibutuhkan
+        //                 ->withPivot('status_tugas', 'catatan_balasan');
+        //         },
+        //         'suratMasuk.instansi',
+        //         'suratMasuk.agenda'
+        //     ])->first();
+        // // echo ($disposisi->suratMasuk);
+        // return view('disposisi.detailWk', compact('disposisi'));;
+    }
+    // public function edit(string $id)
+    // {
+    //     //
+    // }
+
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $request->validate([
+                'surat_masuk_id' => 'required|integer|exists:surat_masuk,id_sm',
+                'catatan' => 'required|string',
+                'perintah' => 'required|array',
+                'perintah.*' => 'string',
+                'penerima' => 'required|array',
+                'penerima.*' => 'integer|exists:users,id'
+            ]);
+
+            // Cari disposisi berdasarkan ID
+            $disposisi = Disposisi::findOrFail($id);
+            // Update data disposisi
+            $disposisi->update([
+                'surat_masuk_id' => $request->surat_masuk_id,
+                'catatan' => $request->catatan,
+                'perintah' => implode(', ', $request->perintah),
+                'tanggal_disposisi' => now() // Jika ingin memperbarui tanggal, jika tidak bisa dihapus
+            ]);
+
+            // Siapkan data pivot
+            $pivotData = array_fill_keys($request->penerima, [
+                'status_tugas' => 0, // Default status
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            // Sync penerimas dengan data pivot
+            $disposisi->penerimas()->sync($pivotData);
+
+            return redirect()->route('disposisi.index')
+                ->with('success', 'Disposisis berhasil diperbarui');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Gagal menyimpan surat masuk: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    public function getData()
+    {
+        $disposisi = Disposisi::with(['suratMasuk', 'penerimas'])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id_disposisi' => $item->id_disposisi,
+                    'surat_masuk' => $item->suratMasuk,
+                    'perintah' => $item->perintah,
+                    'catatan' => $item->catatan,
+                    'penerimas' => $item->penerimas->map(function ($penerima) {
+                        return [
+                            'nama' => $penerima->nama,
+                            'status_tugas' => $penerima->pivot->status_tugas ?? null,
+                            'catatan_balasan' => $penerima->pivot->catatan_balasan ?? null
+                        ];
+                    }),
+                    'tanggal_disposisi' => $item->tanggal_disposisi
+                ];
+            });
+        $users = User::all();
+    }
     public function destroy(string $id)
     {
-        //
+        try {
+            // Cari disposisi berdasarkan ID
+            $disposisi = Disposisi::findOrFail($id);
+
+            // Hapus relasi pivot terlebih dahulu
+            $disposisi->penerimas()->detach();
+
+            // Hapus disposisi
+            $disposisi->delete();
+
+            return redirect()->route('disposisi.index')
+                ->with('success', 'Disposisi berhasil dihapus');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus disposisi: ' . $e->getMessage());
+        }
     }
 }

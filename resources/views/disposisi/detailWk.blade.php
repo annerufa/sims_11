@@ -29,66 +29,60 @@
                 <hr class="mt-0">
             </div>
             <div class="col-12">
-                <table class="table table-hover detail-text ">
+                <table class="table table-hover detail-text">
                     <thead>
                         <tr style="font-weight: bold;">
                             <td>Diteruskan kepada</td>
                             <td>Status Tindakan</td>
                             <td>Dengan hormat harap</td>
-                            <td>catatan</td>
+                            <td>Catatan</td>
                         </tr>
                     </thead>
                     <tbody id="tabel-agenda">
-                        {{-- @foreach ($disposisi as $disposisiItem) --}}
-                        <tr>
-                            <!-- Diteruskan kepada -->
-                            {{-- <td> --}}
-                            @php
-                                $tindak = false; // Initialize as false
-                            @endphp
+                        @php
+                            $tindak = false; // Initialize as false
+                            $perintahArray = explode(', ', $disposisi->perintah); // Ambil perintah sekali
+                        @endphp
 
-                            @foreach ($disposisi->penerimas as $penerima)
+                        @foreach ($disposisi->penerimas as $penerima)
+                            <tr>
                                 <td>
                                     <span class="penerima {{ $loop->iteration % 2 == 0 ? 'even' : 'odd' }}">
                                         {{ $penerima->nama }}</span>
                                 </td>
                                 <td>
+                                    {{-- {{ $penerima->pivot->status_tugas }} --}}
                                     @if (!$penerima->pivot->status_tugas)
-                                        'belum ada tindak lanjut'
+                                        <span class="badge bg-label-warning">Belum Ditindak lanjut</span>
                                     @else
-                                        'telah ditindak lanjuti'
+                                        <span class="badge bg-label-success">Telah Ditindak lanjut</span>
                                     @endif
                                     @php
                                         if (!$penerima->pivot->status_tugas && $penerima->id == auth()->id()) {
                                             $tindak = true;
                                         }
                                     @endphp
-                                    <!-- You can add visual indicator here if needed -->
-                                    {{-- <i class="fas fa-check-circle text-success"></i> --}}
-                                    {{-- @endif --}}
                                 </td>
-                            @endforeach
 
+                                <!-- Dengan hormat harap -->
+                                @if ($loop->first)
+                                    <!-- Hanya tampilkan perintah di baris pertama -->
+                                    <td rowspan="{{ $disposisi->penerimas->count() }}">
+                                        @foreach ($perintahArray as $item)
+                                            <span>{{ $item }}</span><br>
+                                        @endforeach
+                                    </td>
+                                @endif
 
-                            <!-- Dengan hormat harap -->
-                            @php
-                                $perintahArray = explode(', ', $disposisi->perintah);
-                            @endphp
-
-                            <td>
-                                @foreach ($perintahArray as $item)
-                                    <span>{{ $item }}</span><br>
-                                @endforeach
-                            </td>
-
-                            <!-- Catatan -->
-                            <td>{{ $disposisi->catatan }}</td>
-
-
-
-                        </tr>
-                        {{-- @endforeach --}}
-
+                                <!-- Catatan -->
+                                @if ($loop->first)
+                                    <!-- Hanya tampilkan catatan di baris pertama -->
+                                    <td rowspan="{{ $disposisi->penerimas->count() }}">
+                                        {{ $disposisi->catatan }}
+                                    </td>
+                                @endif
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
                 <br>

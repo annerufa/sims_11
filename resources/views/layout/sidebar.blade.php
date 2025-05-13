@@ -1,6 +1,7 @@
 {{-- ambil data role dan route --}}
 @php
     $role = auth()->user()->jabatan; // misalnya 'admin' atau 'kepala_sekolah'
+    $idUser = auth()->user()->id;
     $current = request()->route()->getName(); // nama route saat ini
 @endphp
 
@@ -9,7 +10,7 @@
     <div class="app-brand demo">
         <a href="{{ url('/') }}" class="app-brand-link">
             <span class="app-brand-logo demo">
-                <img src="{{ asset('assets/img/logo kecil.png') }}" style="width: 80%;padding-left: 20%;">
+                <img src="{{ asset('assets/img/logo 2.png') }}" style="width: 100%;">
             </span>
         </a>
 
@@ -54,18 +55,26 @@
         </li>
         {{-- @endif --}}
         @if ($role !== 'admin')
-            <li class="menu-item">
+            <li class="menu-item {{ is_active_url(['disposisi', 'disposisi/*']) }}">
                 <a href="{{ route('disposisi.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-run"></i>
                     <div class="text-truncate">Disposisi</div>
+                    @if ($role !== 'ks')
+                        @if ($disBaru > 0)
+                            <span class="badge rounded-pill bg-danger ms-auto">{{ $disBaru }}</span>
+                        @endif
+                    @endif
                 </a>
             </li>
         @endif
         @if ($role !== 'ks' && $role !== 'admin')
-            <li class="menu-item {{ is_active_url(['validasi-surat', 'setujui', 'revisi']) }}">
+            <li class="menu-item {{ is_active_url(['validasi-surat', 'detail.validasi/*', 'setujui', 'revisi']) }}">
                 <a href="{{ route('validasi-surat') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-run"></i>
                     <div class="text-truncate">Validasi Surat Keluar</div>
+                    @if ($draftSurat > 0)
+                        <span class="badge rounded-pill bg-danger ms-auto">{{ $draftSurat }}</span>
+                    @endif
                 </a>
             </li>
         @endif
@@ -96,7 +105,7 @@
             <span class="menu-header-text">Profil</span>
         </li>
         <li class="menu-item">
-            <a href="{{ route('profil.index') }}" class="menu-link">
+            <a href="{{ route('profil.edit', $idUser) }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-bxs-face"></i>
                 <div class="text-truncate">Profil</div>
             </a>
