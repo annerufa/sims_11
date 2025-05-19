@@ -18,19 +18,31 @@
             <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
                 <h5 class="card-title mb-0 text-md-start text-center">Daftar Surat Keluar</h5>
             </div>
-            @if (auth()->user()->jabatan === 'admin')
+            {{-- @if (auth()->user()->jabatan === 'admin')
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <a href="{{ route('surat-keluar.create') }}">
                         <button class="btn btn-primary mb-3 ">Tambah Surat Keluar</button>
                     </a>
-                    {{-- <button class="btn btn-primary mb-3 " data-bs-toggle="modal" data-bs-target="#addAgendaModal">Tambah Surat Masuk</button> --}}
-                </div>
-            @endif
+                    </div>
+            @endif --}}
+            <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
+                @if ($role === 'admin')
+                    <a href="{{ route('surat-keluar.create') }}">
+                        <button class="btn btn-primary mb-3 ">Tambah Surat Keluar</button>
+                    </a>
+                @endif
+                <!-- Print Button to open modal -->
+                <button type="button" style="margin-left:10px;" class="btn btn-primary mb-3 " data-bs-toggle="modal"
+                    data-bs-target="#printModal">
+                    <i class="menu-icon bx bx-printer" style="margin-right:0;"></i>
+                </button>
+            </div>
         </div>
         <div class="table-responsive text-nowrap">
 
             @if (session('success'))
-                <div class="alert alert-success" id="auto-dismiss-alert" style="position: fixed;z-index: 9999;width:1057px;">
+                <div class="alert alert-success" id="auto-dismiss-alert"
+                    style="position: fixed;z-index: 9999;width:1057px;">
                     {{ session('success') }}
                 </div>
             @endif
@@ -113,7 +125,48 @@
         </div>
 
 
+        <!-- Modal for filter form -->
+        <div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ route('surat_keluar.print') }}" target="_blank">
+                    @csrf
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="printModalLabel">Pilih Periode Waktu dan Jenis Agenda Surat</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Tanggal Mulai</label>
+                                <input type="date" id="start_date" name="start_date" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="end_date" class="form-label">Tanggal Selesai</label>
+                                <input type="date" id="end_date" name="end_date" class="form-control" required>
+                            </div>
 
+                            <div class="mb-3">
+                                <label for="agenda" class="form-label">Jenis Agenda (Optional)</label>
+                                <select id="defaultSelect" name="id_agenda" class="form-select">
+                                    <option value="">Semua Agenda</option>
+                                    @foreach ($agenda as $agenda)
+                                        <option value="{{ $agenda->id_agenda }}">
+                                            {{-- {{ old('agenda', $data->agenda_id ?? '') == $agenda->id_agenda ? 'selected' : '' }}> --}}
+                                            {{ $agenda->nama_bagian }}
+                                        </option>
+                                        {{-- <option value="{{ $agenda->id_agenda }}">{{ $agenda->nama_bagian }}</option> --}}
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-success">Print PDF</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 @endsection
 

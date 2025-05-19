@@ -196,7 +196,7 @@
                                     <select id="select2Dark" name="penerima[]" class="select2 form-select"
                                         multiple="multiple">
                                         @foreach ($users as $user)
-                                            @if ($user->jabatan == 'ks')
+                                            @if ($user->jabatan == 'ks' || $user->jabatan == 'admin')
                                                 @continue
                                             @endif
                                             <option value="{{ $user->id }}">{{ $user->nama }} -

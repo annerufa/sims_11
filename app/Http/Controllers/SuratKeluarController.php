@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class SuratKeluarController extends Controller
 {
     /**
@@ -22,6 +24,7 @@ class SuratKeluarController extends Controller
     {
         $jabatan =  Auth::user()->jabatan;
         $userId = Auth::user()->id;
+        $agenda = Agenda::all();
         if ($jabatan !== 'admin' && $jabatan !== 'ks') {
             $suratKeluars = SuratKeluar::where('validator_id', Auth::user()->id)
                 ->whereIn('status_validasi', ['final', 'disetujui'])
@@ -30,7 +33,7 @@ class SuratKeluarController extends Controller
             $suratKeluars = SuratKeluar::with('instansi')->latest()->get(); // 'instansi' nanti kita buat relasinya
 
         }
-        return view('surat-keluar.index', compact('suratKeluars'));
+        return view('surat-keluar.index', compact('suratKeluars', 'agenda'));
     }
     public function validasiShow()
     {
@@ -46,7 +49,7 @@ class SuratKeluarController extends Controller
     public function create()
     {
 
-        $users = User::whereNotIn('jabatan', ['ks', 'admin'])->get();
+        $users = User::whereNotIn('jabatan', ['admin'])->get();
         $listInstansi = Instansi::all();
         $agenda = Agenda::all();
         $jenisSuratOptions = [
@@ -119,7 +122,9 @@ class SuratKeluarController extends Controller
 
             $validated['nomor_urut'] = $lastNumber ? $lastNumber + 1 : 1;
             $validated['pengaju'] = $request->pengaju;
-            if ($request->validator_id == 8) {
+            $validator = User::select('jabatan')->where('id', $request->validator_id)->first();
+            // dd($validator->jabatan);
+            if ($validator->jabatan === 'ks') {
                 $validated['status_validasi'] = 'disetujui';
             } else {
                 $validated['status_validasi'] = 'draft';
@@ -378,5 +383,65 @@ class SuratKeluarController extends Controller
 
         return redirect()->route('surat-keluar.index')
             ->with('success', 'Surat keluar berhasil direvisi');
+    }
+
+    public function print(Request $request)
+    {
+        // Validate date inputs
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        // Initialize the base query with date filter
+        $baseQuery = SuratKeluar::whereBetween('tanggal_srt', [$startDate, $endDate]);
+
+        // Add agenda filter if provided
+        if ($request->has('id_agenda') && $request->input('id_agenda') !== null) {
+            $idAgenda = $request->input('id_agenda');
+            $baseQuery->where('agenda_id', $idAgenda);
+        }
+
+        // Create subquery to get the first record per agenda_id
+        $subquery = clone $baseQuery;
+        $subquery = $subquery->select('agenda_id', SuratKeluar::raw('MIN(tanggal_srt) as min_tanggal'))
+            ->groupBy('agenda_id');
+
+        // Main query to get full records
+        $query = SuratKeluar::joinSub($subquery, 'grouped', function ($join) {
+            $join->on('surat_keluar.agenda_id', '=', 'grouped.agenda_id')
+                ->on('surat_keluar.tanggal_srt', '=', 'grouped.min_tanggal');
+        })
+            ->with(['agenda', 'instansi'])
+            ->orderBy('surat_keluar.tanggal_srt', 'asc');
+
+        // Execute the query
+        $suratKeluar = $query->get();
+
+        // // Initialize the query
+        // $query = SuratMasuk::whereBetween('tanggal_srt', [$startDate, $endDate])
+        //     ->with(['agenda', 'instansi'])->groupBy('agenda_id');
+
+        // // Check if id_agenda is present in the request
+        // if ($request->has('id_agenda') && $request->input('id_agenda') !== null) {
+        //     $idAgenda = $request->input('id_agenda');
+        //     $query->where('agenda_id', $idAgenda);
+        // }
+        // // Execute the query
+        // $suratMasuk = $query->orderBy('tanggal_srt', 'asc')->get();
+
+        // Generate PDF content using a view or inline HTML
+        $html = view('surat-keluar.pdf', ['suratKeluar' => $suratKeluar, 'startDate' => $startDate, 'endDate' => $endDate])->render();
+
+        // Load HTML into Dompdf wrapper with 2 cm margins
+        $pdf = PDF::loadHTML($html)
+            ->setPaper('a4', 'landscape')
+            ->setOptions(['margin-left' => '2cm', 'margin-right' => '2cm', 'margin-top' => '2cm', 'margin-bottom' => '2cm']);
+
+        // Return PDF download
+        $fileName = 'Rekap surat_keluar_' . $startDate . '_to_' . $endDate . '.pdf';
+        return $pdf->download($fileName);
     }
 }

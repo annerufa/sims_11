@@ -140,7 +140,7 @@
                         <option>Pilih Salah Satu</option>
                         @foreach ($agenda as $agenda)
                             <option value="{{ $agenda->id_agenda }}"
-                                {{ old('agenda', $data->agenda_id ?? '') == $agenda->id_agenda ? 'selected' : '' }}>
+                                {{ old('agenda_id', $data->agenda_id ?? '') == $agenda->id_agenda ? 'selected' : '' }}>
                                 {{ $agenda->nama_bagian }}
                             </option>
                             {{-- <option value="{{ $agenda->id_agenda }}">{{ $agenda->nama_bagian }}</option> --}}

@@ -22,6 +22,8 @@ Route::resource('profil', ProfilController::class)->middleware('auth');
 Route::get('/', function () {
     return view('auth');
 });
+Route::post('surat_masuk.print', [SuratMasukController::class, 'print'])->name('surat_masuk.print');
+Route::post('surat_keluar.print', [SuratKeluarController::class, 'print'])->name('surat_keluar.print');
 // register 
 Route::get('validasi-surat', [SuratKeluarController::class, 'validasiShow'])->name('validasi-surat');
 Route::get('detail.validasi/{id}', [SuratKeluarController::class, 'detailValidasi'])->name('detail.validasi');
@@ -59,6 +61,7 @@ Route::get('/access-denied', function () {
     return view('access-denied'); // Buat view ini nanti
 })->name('access.denied');
 
+Route::get('/get-instansi', [InstansiController::class, 'getInstansi'])->name('get.instansi');
 Route::get('/test-helper', function () {
     // Test is_active_route
     $routeActive = is_active_route('test-helper');
@@ -71,18 +74,3 @@ Route::get('/test-helper', function () {
         'url_active' => $urlActive
     ];
 })->name('test-helper');
-
-Route::get('/get-instansi', [InstansiController::class, 'getInstansi'])->name('get.instansi');
-
-// routes/web.php
-Route::get('/view-sm-pdf/{filename}', function ($filename) {
-    $path = storage_path('app/private/' . $filename);
-
-    if (!file_exists($path)) {
-        abort(404);
-    }
-
-    return response()->file($path, [
-        'Content-Type' => 'application/pdf',
-    ]);
-})->middleware(['auth'])->name('view.private.pdf');

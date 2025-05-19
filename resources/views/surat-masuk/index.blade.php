@@ -41,18 +41,24 @@
             <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
                 <h5 class="card-title mb-0 text-md-start text-center">Daftar Surat Masuk</h5>
             </div>
-            @if ($role === 'admin')
-                <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
+            <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
+                @if ($role === 'admin')
                     <a href="{{ route('surat-masuk.create') }}">
                         <button class="btn btn-primary mb-3 ">Tambah Surat Masuk</button>
                     </a>
-                </div>
-            @endif
+                @endif
+                <!-- Print Button to open modal -->
+                <button type="button" style="margin-left:10px;" class="btn btn-primary mb-3 " data-bs-toggle="modal"
+                    data-bs-target="#printModal">
+                    <i class="menu-icon bx bx-printer" style="margin-right:0;"></i>
+                </button>
+            </div>
         </div>
         <div class="table-responsive text-nowrap">
 
             @if (session('success'))
-                <div class="alert alert-success" id="auto-dismiss-alert" style="position: fixed;z-index: 9999;width:1057px;">
+                <div class="alert alert-success" id="auto-dismiss-alert"
+                    style="position: fixed;z-index: 9999;width:1057px;">
                     {{ session('success') }}
                 </div>
             @endif
@@ -164,61 +170,79 @@
             </div>
         </div>
 
-        {{-- Modal Update --}}
-        <div class="modal fade" id="editAgendaModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <form id="formEditAgenda" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-                        <input type="number" id="EidInstansi" name="id_agenda" hidden />
+
+        <!-- Modal for filter form -->
+        <div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ route('surat_masuk.print') }}" target="_blank">
+                    @csrf
+                    <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Edit Instansi</h5>
+                            <h5 class="modal-title" id="printModalLabel">Pilih Periode Waktu dan Jenis Agenda Surat</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="row">
-                                <div class="col mb-6">
-                                    <label for="kodeBagian" class="form-label">Nama Instansi</label>
-                                    <input type="text" name="nama_instansi" id="enama_instansi" class="form-control"
-                                        placeholder="Masukkan Nama Instansi">
-                                </div>
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Tanggal Mulai</label>
+                                <input type="date" id="start_date" name="start_date" class="form-control" required>
                             </div>
-                            <div class="row g-6">
-                                <div class="col mb-6">
-                                    <label for="emailBasic" class="form-label">Nama Pengirim</label>
-                                    <input type="text" name="nama_pengirim" id="enama_pengirim" class="form-control"
-                                        placeholder="Mr. Boom">
-                                </div>
-                                <div class="col mb-6">
-                                    <label for="dobBasic" class="form-label">Jabatan Pengirim</label>
-                                    <input type="text" name="jabatan_pengirim" id="ejabatan_pengirim"
-                                        class="form-control">
-                                </div>
+                            <div class="mb-3">
+                                <label for="end_date" class="form-label">Tanggal Selesai</label>
+                                <input type="date" id="end_date" name="end_date" class="form-control" required>
                             </div>
-                            <div class="row">
-                                <div class="col mb-6">
-                                    <label for="namaBagian" class="form-label">Periode Pengirim</label>
-                                    <input type="text" name="periode_pengirim" id="eperiode_pengirim"
-                                        class="form-control" placeholder="2023-2024">
-                                </div>
+
+                            {{-- <div class="mb-3">
+                                <label for="id_agenda" class="form-label">ID Agenda (optional)</label>
+                                <input type="text" id="id_agenda" name="id_agenda" class="form-control"
+                                    placeholder="Masukkan ID Agenda">
+                            </div> --}}
+                            <div class="mb-3">
+                                <label for="agenda" class="form-label">Jenis Agenda (Optional)</label>
+                                <select id="defaultSelect" name="id_agenda" class="form-select">
+                                    <option value="">Pilih Salah Satu</option>
+                                    @foreach ($agenda as $agenda)
+                                        <option value="{{ $agenda->id_agenda }}">
+                                            {{-- {{ old('agenda', $data->agenda_id ?? '') == $agenda->id_agenda ? 'selected' : '' }}> --}}
+                                            {{ $agenda->nama_bagian }}
+                                        </option>
+                                        {{-- <option value="{{ $agenda->id_agenda }}">{{ $agenda->nama_bagian }}</option> --}}
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-primary">Update</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-success">Print PDF</button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
 
 
     </div>
+
+    {{-- @extends('layouts.app') --}}
 @endsection
 
 @push('script')
+    <script src="{{ asset('assets/vendor/libs/jquery-timepicker/jquery-timepicker.js') }}"></script>
+    <script src="{{ asset('assets/js/form-picker.js') }}"></script>
+    {{-- <script>
+        flatpickr("#rangeTgl", {
+            ranges: {
+                Today: [moment(), moment()],
+                Yesterday: [moment().subtract(1, "days"), moment().subtract(1, "days")],
+                "Last 7 Days": [moment().subtract(6, "days"), moment()],
+                "Last 30 Days": [moment().subtract(29, "days"), moment()],
+                "This Month": [moment().startOf("month"), moment().endOf("month")],
+                "Last Month": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf(
+                    "month")]
+            },
+            opens: isRtl ? "left" : "right"
+        });
+    </script> --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var alert = document.getElementById('auto-dismiss-alert');

@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+// use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SuratMasukController extends Controller
 {
@@ -21,15 +23,17 @@ class SuratMasukController extends Controller
     {
         $jabatan =  Auth::user()->jabatan;
         $userId = Auth::user()->id;
+        $agenda = Agenda::all();
         if ($jabatan === 'admin' || $jabatan === 'ks') {
             $suratMasuk = SuratMasuk::with('instansi')->latest()->get();
+            return view('surat-masuk.index', compact('suratMasuk', 'agenda'));
         } else {
             $suratMasuk = SuratMasuk::with('disposisi.penerimas')
                 ->whereHas('disposisi.penerimas', function ($query) use ($userId) {
                     $query->where('users.id', $userId);
                 })->get();
+            return view('surat-masuk.index', compact('suratMasuk'));
         }
-        return view('surat-masuk.index', compact('suratMasuk'));
     }
 
     public function create()
@@ -78,18 +82,11 @@ class SuratMasukController extends Controller
 
             // Jika belum ada, buat baru
             if (!$instansi) {
-                $input = $request->jabatan_pengirim;
-
-                preg_match('/^(.*?)\s*\((.*?)\)$/', $input, $matches);
-
-                $a = $matches[1] ?? $input; // "Kepala Sekolah"
-                $b = $matches[2] ?? null; // "2024-2029"
 
                 $instansi = Instansi::create([
-                    'nama_instansi' => $request->nama_instansi,
-                    'nama_pengirim' => $request->nama_pengirim,
-                    'jabatan_pengirim' => $a,
-                    'periode_pengirim' => $b,
+                    'nama_instansi' => strtoupper($request->nama_instansi),
+                    // 'nama_pengirim' =>  ucwords(strtolower($request->nama_pengirim)),
+                    'jabatan_pengirim' => $request->jabatan_pengirim,
                     'alamat_pengirim' => $request->alamat_pengirim,
                 ]);
             }
@@ -190,18 +187,10 @@ class SuratMasukController extends Controller
 
             // Jika belum ada, buat baru
             if (!$instansi) {
-                $input = $request->jabatan_pengirim;
-
-                preg_match('/^(.*?)\s*\((.*?)\)$/', $input, $matches);
-
-                $a = $matches[1] ?? $input; // "Kepala Sekolah"
-                $b = $matches[2] ?? null; // "2024-2029"
-
                 $instansi = Instansi::create([
                     'nama_instansi' => $request->nama_instansi,
                     'nama_pengirim' => $request->nama_pengirim,
-                    'jabatan_pengirim' => $a,
-                    'periode_pengirim' => $b,
+                    'jabatan_pengirim' => $request->jabatan_pengirim,
                     'alamat_pengirim' => $request->alamat_pengirim,
                 ]);
             }
@@ -244,5 +233,66 @@ class SuratMasukController extends Controller
 
         return redirect()->route('surat-masuk.index')
             ->with('success', 'Surat masuk berhasil dihapus');
+    }
+
+
+    public function print(Request $request)
+    {
+        // Validate date inputs
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        // Initialize the base query with date filter
+        $baseQuery = SuratMasuk::whereBetween('tanggal_srt', [$startDate, $endDate]);
+
+        // Add agenda filter if provided
+        if ($request->has('id_agenda') && $request->input('id_agenda') !== null) {
+            $idAgenda = $request->input('id_agenda');
+            $baseQuery->where('agenda_id', $idAgenda);
+        }
+
+        // Create subquery to get the first record per agenda_id
+        $subquery = clone $baseQuery;
+        $subquery = $subquery->select('agenda_id', SuratMasuk::raw('MIN(tanggal_srt) as min_tanggal'))
+            ->groupBy('agenda_id');
+
+        // Main query to get full records
+        $query = SuratMasuk::joinSub($subquery, 'grouped', function ($join) {
+            $join->on('surat_masuk.agenda_id', '=', 'grouped.agenda_id')
+                ->on('surat_masuk.tanggal_srt', '=', 'grouped.min_tanggal');
+        })
+            ->with(['agenda', 'instansi'])
+            ->orderBy('surat_masuk.tanggal_srt', 'asc');
+
+        // Execute the query
+        $suratMasuk = $query->get();
+
+        // // Initialize the query
+        // $query = SuratMasuk::whereBetween('tanggal_srt', [$startDate, $endDate])
+        //     ->with(['agenda', 'instansi'])->groupBy('agenda_id');
+
+        // // Check if id_agenda is present in the request
+        // if ($request->has('id_agenda') && $request->input('id_agenda') !== null) {
+        //     $idAgenda = $request->input('id_agenda');
+        //     $query->where('agenda_id', $idAgenda);
+        // }
+        // // Execute the query
+        // $suratMasuk = $query->orderBy('tanggal_srt', 'asc')->get();
+
+        // Generate PDF content using a view or inline HTML
+        $html = view('surat-masuk.pdf', ['suratMasuk' => $suratMasuk, 'startDate' => $startDate, 'endDate' => $endDate])->render();
+
+        // Load HTML into Dompdf wrapper with 2 cm margins
+        $pdf = PDF::loadHTML($html)
+            ->setPaper('a4', 'landscape')
+            ->setOptions(['margin-left' => '2cm', 'margin-right' => '2cm', 'margin-top' => '2cm', 'margin-bottom' => '2cm']);
+
+        // Return PDF download
+        $fileName = 'surat_masuk_' . $startDate . '_to_' . $endDate . '.pdf';
+        return $pdf->download($fileName);
     }
 }

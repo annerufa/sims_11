@@ -81,17 +81,17 @@
                     <h6 class="mt-2">2. Detail Isi Surat</h6>
                     <hr class="mt-0">
                 </div>
-                {{-- <div class="col-md-4 col-12 mb-6">
+                <div class="col-md-4 col-12 mb-6">
                     <label for="flatpickr-date" class="form-label">Tanggal Surat</label>
                     <input type="date" name="tanggal_srt" class="form-control" placeholder="01-01-2001"
                         id="tanggal_srt" />
-                </div> --}}
-                <div class="col-md-6 form-control-validation fv-plugins-icon-container">
+                </div>
+                <div class="col-md-4 form-control-validation fv-plugins-icon-container">
                     <label class="form-label">Pengaju</label>
                     <input type="text" class="form-control" name="pengaju"
                         value="{{ old('pengaju', $data->pengaju ?? '') }}">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="jenis_srt" class="form-label">Jenis Surat</label>
                     <select id="jenis_srt" name="jenis_srt" class="form-select">
                         <option disabled selected>Pilih Salah Satu</option>
@@ -110,7 +110,11 @@
                         @foreach ($validator as $validator)
                             <option value="{{ $validator->id }}"
                                 {{ old('validator_id', $data->validator_id ?? '') == $validator->id ? 'selected' : '' }}>
-                                {{ $validator->nama }}
+                                @if ($validator->jabatan === 'ks')
+                                    Kepala Sekolah - {{ $validator->nama }}
+                                @else
+                                    {{ $validator->jabatan }} - {{ $validator->nama }}
+                                @endif
                             </option>
                         @endforeach
                     </select>
@@ -163,6 +167,14 @@
 @push('script')
     <script src="{{ asset('assets/vendor/libs/jquery-timepicker/jquery-timepicker.js') }}"></script>
     <script src="{{ asset('assets/js/form-picker.js') }}"></script>
+    <script>
+        flatpickr("#tanggal_srt", {
+            dateFormat: "d-m-Y",
+            defaultDate: @json(old(
+                    'tanggal_srt',
+                    isset($data) ? \Carbon\Carbon::parse($data->tanggal_srt)->format('d-m-Y') : now()->format('d-m-Y')))
+        });
+    </script>
     <script>
         $('#tujuan').on('change', function() {
 
